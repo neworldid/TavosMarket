@@ -1,0 +1,44 @@
+﻿@*
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            @if (context.User.Identity?.Name != null)
+            {
+                <MudText Typo="Typo.subtitle1">
+                    @context.User.Identity.Name
+                </MudText>
+            }
+            <MudIconButton
+                Icon="@Icons.Material.Filled.Logout"
+                OnClick="@Logout"
+                Title="Log out">
+                Log out
+            </MudIconButton>
+        </MudStack>
+    </Authorized>
+    <NotAuthorized>
+        <MudIconButton
+            Icon="@Icons.Material.Filled.Login"
+            OnClick="@Login"
+            Title="Login">
+            Login
+        </MudIconButton>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    private void Login()
+    {
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void Logout()
+    {
+        Navigation.NavigateTo("/logout", forceLoad: true);
+    }
+
+}
+*@

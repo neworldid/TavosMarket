@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TavosMarket.Application\TavosMarket.Application.csproj" />
+      <ProjectReference Include="..\TavosMarket.Domain\TavosMarket.Domain.csproj" />
+    </ItemGroup>
+
+</Project>

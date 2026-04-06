@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="TavosMarket.Api/TavosMarket.Api.csproj" />
+  <Project Path="TavosMarket.Application/TavosMarket.Application.csproj" />
+  <Project Path="TavosMarket.Client/TavosMarket.Client.csproj" />
+  <Project Path="TavosMarket.Domain/TavosMarket.Domain.csproj" />
+  <Project Path="TavosMarket.Infrastructure/TavosMarket.Infrastructure.csproj" />
+  <Project Path="TavosMarket.Shared/TavosMarket.Shared.csproj" />
+</Solution>
