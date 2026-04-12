@@ -1,0 +1,59 @@
+﻿@page "/login"
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">Login</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
+            <MudForm Model="@model" OnValidSubmit="@HandleLogin">
+                <MudStack Spacing="2">
+                    <MudTextField @bind-Value="model.Email"
+                                  Label="Email"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Email is required" />
+
+                    <MudTextField @bind-Value="model.Password"
+                                  Label="Password"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Password"
+                                  Required="true"
+                                  RequiredError="Password is required" />
+
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               FullWidth="true">
+                        Login
+                    </MudButton>
+
+                    <MudText Typo="Typo.body2" Align="Align.Center">
+                        Don't have an account?
+                        <MudLink Href="/register" Underline="Underline.Hover">
+                            Register here
+                        </MudLink>
+                    </MudText>
+                </MudStack>
+            </MudForm>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private LoginVm model = new();
+
+    private void HandleLogin()
+    {
+        // TODO
+    }
+
+    private sealed class LoginVm
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

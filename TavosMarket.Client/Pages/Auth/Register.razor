@@ -1,0 +1,126 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using System.Net
+@using TavosMarket.Client.Auth
+@using TavosMarket.Shared
+@using TavosMarket.Shared.Auth.DTOs
+
+@inject IHttpClientFactory HttpClientFactory;
+@inject ISnackbar Snackbar;
+@inject NavigationManager Navigation;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">Register</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
+            <MudForm @ref="form">
+                <MudStack Spacing="2">
+                    <MudTextField @bind-Value="model.Email"
+                                  Label="Email"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+
+                    <MudTextField @bind-Value="model.UserName"
+                                  Label="User name"
+                                  Variant="Variant.Outlined"
+                                  Required="true" />
+
+                    <MudTextField @bind-Value="model.FirstName"
+                                  Label="First name"
+                                  Variant="Variant.Outlined" />
+
+                    <MudTextField @bind-Value="model.LastName"
+                                  Label="Last name"
+                                  Variant="Variant.Outlined" />
+
+                    <MudTextField @bind-Value="model.Password"
+                                  Label="Password"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Password"
+                                  For="() => model.Password" />
+
+                    <MudButton ButtonType="ButtonType.Button"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               FullWidth="true"
+                               OnClick="@HandleRegister"
+                               Disabled="@isBusy">
+                        Register
+                    </MudButton>
+                    
+                    <MudText Typo="Typo.body2" Align="Align.Center">
+                        Already have an account?
+                        <MudLink Href="/login" Underline="Underline.Hover">
+                            Login here
+                        </MudLink>
+                    </MudText>
+                </MudStack>
+            </MudForm>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private MudForm? form;
+    private bool isBusy;
+    private RegisterVm model = new();
+
+    private async Task HandleRegister()
+    {
+        if (form is null)
+            return;
+
+        await form.ValidateAsync();
+
+        if (!form.IsValid)
+            return;
+
+        try
+        {
+            isBusy = true;
+
+            var request = new RegisterRequest(
+                model.Email,
+                model.Password,
+                model.UserName,
+                model.FirstName,
+                model.LastName);
+
+            var api = HttpClientFactory.CreateClient("Api");
+            var response = await api.PostAsJsonAsync(ApiRoutes.Auth.Register, request);
+            response.EnsureSuccessStatusCode();
+
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (authResponse is null)
+                return;
+
+            if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
+                await tokenProvider.SetTokenAsync(authResponse.AccessToken);
+
+            Navigation.NavigateTo("/");
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private sealed class RegisterVm
+    {
+        public string Email { get; set; } = string.Empty;
+        [Required]
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters long.")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).+$",
+            ErrorMessage = "Password must contain at least one uppercase letter and one special character.")]
+        public string Password { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+    }
+}

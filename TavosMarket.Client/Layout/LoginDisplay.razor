@@ -1,5 +1,4 @@
-﻿@*
-@inject NavigationManager Navigation
+﻿@inject NavigationManager Navigation
 
 <AuthorizeView>
     <Authorized>
@@ -19,12 +18,12 @@
         </MudStack>
     </Authorized>
     <NotAuthorized>
-        <MudIconButton
-            Icon="@Icons.Material.Filled.Login"
-            OnClick="@Login"
-            Title="Login">
-            Login
-        </MudIconButton>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+            <MudIconButton
+                Icon="@Icons.Material.Filled.Login"
+                OnClick="@Login"
+                Title="Login"/>
+        </MudStack>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -41,4 +40,3 @@
     }
 
 }
-*@
