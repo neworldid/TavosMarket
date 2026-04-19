@@ -1,4 +1,14 @@
 ﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using System.Net
+@using TavosMarket.Client.Auth
+@using TavosMarket.Shared
+@using TavosMarket.Shared.Auth.DTOs
+
+@inject IHttpClientFactory HttpClientFactory;
+@inject NavigationManager Navigation;
+@inject ISnackbar Snackbar;
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
     <MudCard>
@@ -9,25 +19,24 @@
         </MudCardHeader>
 
         <MudCardContent>
-            <MudForm Model="@model" OnValidSubmit="@HandleLogin">
+            <MudForm @ref="@_form">
                 <MudStack Spacing="2">
-                    <MudTextField @bind-Value="model.Email"
+                    <MudTextField @bind-Value="_model.Email"
                                   Label="Email"
                                   Variant="Variant.Outlined"
-                                  Required="true"
-                                  RequiredError="Email is required" />
+                                  For="() => _model.Email" />
 
-                    <MudTextField @bind-Value="model.Password"
+                    <MudTextField @bind-Value="_model.Password"
                                   Label="Password"
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Password"
-                                  Required="true"
-                                  RequiredError="Password is required" />
+                                  For="() => _model.Password" />
 
-                    <MudButton ButtonType="ButtonType.Submit"
-                               Variant="Variant.Filled"
+                    <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
-                               FullWidth="true">
+                               FullWidth="true"
+                               OnClick="HandleLogin"
+                               Disabled="_isBusy">
                         Login
                     </MudButton>
 
@@ -44,16 +53,63 @@
 </MudContainer>
 
 @code {
-    private LoginVm model = new();
+    private readonly LoginVm _model = new();
+    private bool _isBusy;
+    private MudForm _form = null!;
 
-    private void HandleLogin()
+    private async Task HandleLogin()
     {
-        // TODO
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+            return;
+
+        try
+        {
+            _isBusy = true;
+
+            var request = new LoginRequest(_model.Email, _model.Password);
+
+            var api = HttpClientFactory.CreateClient("Api");
+            var response = await api.PostAsJsonAsync(ApiRoutes.Auth.Login, request);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                Snackbar.Add("Invalid email or password.", Severity.Error);
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (authResponse is null)
+            {
+                Snackbar.Add("Login response is empty.", Severity.Error);
+                return;
+            }
+
+            if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
+                await tokenProvider.SetTokenAsync(authResponse.AccessToken);
+
+            Snackbar.Add($"Welcome, {authResponse.User.Email}!", Severity.Success);
+            Navigation.NavigateTo("/");
+        }
+        catch
+        {
+            // ignored
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+        
     }
 
     private sealed class LoginVm
     {
+        [Required]
         public string Email { get; set; } = string.Empty;
+        [Required]
         public string Password { get; set; } = string.Empty;
     }
 }

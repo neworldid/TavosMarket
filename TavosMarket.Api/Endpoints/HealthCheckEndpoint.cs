@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace TavosMarket.Api.Endpoints;
@@ -18,6 +19,7 @@ public class HealthCheckEndpoint : IEndpoint
     /// </summary>
     /// <returns>OK</returns>
     [PublicAPI]
+    [Authorize]
     public static Ok<string> HealthCheck()
     {
         return TypedResults.Ok("OK");

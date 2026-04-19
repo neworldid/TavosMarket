@@ -12,9 +12,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddMudServices();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, TokenAuthenticationStateProvider>();
+builder.Services.AddScoped<TokenAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+	sp.GetRequiredService<TokenAuthenticationStateProvider>());
+builder.Services.AddScoped<AuthorizationMessageHandler>();
 builder.Services.AddHttpClient("Api", client =>
 {
 	client.BaseAddress = new Uri("https://localhost:7055/");
-});
+})
+.AddHttpMessageHandler<AuthorizationMessageHandler>();
 await builder.Build().RunAsync();

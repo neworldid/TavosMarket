@@ -1,6 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using TavosMarket.Client.Theme
+@inherits LayoutComponentBase
 @* Required *@
-<MudThemeProvider />
+<MudThemeProvider Theme="TavosMarketTheme.Theme" />
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -8,8 +9,6 @@
 
 @* Needed for snackbars *@
 <MudSnackbarProvider />
-
-<MudThemeProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1">

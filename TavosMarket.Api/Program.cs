@@ -22,7 +22,12 @@ builder.Services
 	.AddEntityFrameworkStores<TavosMarketDbContext>()
 	.AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+	{
+		options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+		options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+		options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+	})
 	.AddJwtBearer(options =>
 	{
 		var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -66,11 +71,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Client");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapEndpoints();
-app.UseCors("Client");
 
 await EnsureRolesAsync(app);
 

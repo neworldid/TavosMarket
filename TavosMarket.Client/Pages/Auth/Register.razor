@@ -19,38 +19,40 @@
         </MudCardHeader>
 
         <MudCardContent>
-            <MudForm @ref="form">
+            <MudForm @ref="_form">
                 <MudStack Spacing="2">
-                    <MudTextField @bind-Value="model.Email"
+                    <MudTextField @bind-Value="_model.Email"
                                   Label="Email"
                                   Variant="Variant.Outlined"
-                                  Required="true" />
+                                  For="() => _model.Email"/>
 
-                    <MudTextField @bind-Value="model.UserName"
+                    <MudTextField @bind-Value="_model.UserName"
                                   Label="User name"
                                   Variant="Variant.Outlined"
-                                  Required="true" />
+                                  For="() => _model.UserName"/>
 
-                    <MudTextField @bind-Value="model.FirstName"
+                    <MudTextField @bind-Value="_model.FirstName"
                                   Label="First name"
-                                  Variant="Variant.Outlined" />
+                                  Variant="Variant.Outlined"
+                                  For="() => _model.FirstName"/>
 
-                    <MudTextField @bind-Value="model.LastName"
+                    <MudTextField @bind-Value="_model.LastName"
                                   Label="Last name"
-                                  Variant="Variant.Outlined" />
+                                  Variant="Variant.Outlined"
+                                  For="() => _model.LastName"/>
 
-                    <MudTextField @bind-Value="model.Password"
+                    <MudTextField @bind-Value="_model.Password"
                                   Label="Password"
                                   Variant="Variant.Outlined"
                                   InputType="InputType.Password"
-                                  For="() => model.Password" />
+                                  For="() => _model.Password" />
 
                     <MudButton ButtonType="ButtonType.Button"
                                Variant="Variant.Filled"
                                Color="Color.Primary"
                                FullWidth="true"
                                OnClick="@HandleRegister"
-                               Disabled="@isBusy">
+                               Disabled="@_isBusy">
                         Register
                     </MudButton>
                     
@@ -67,30 +69,27 @@
 </MudContainer>
 
 @code {
-    private MudForm? form;
-    private bool isBusy;
-    private RegisterVm model = new();
+    private MudForm _form = null!;
+    private bool _isBusy;
+    private readonly RegisterVm _model = new();
 
     private async Task HandleRegister()
     {
-        if (form is null)
-            return;
+        await _form.ValidateAsync();
 
-        await form.ValidateAsync();
-
-        if (!form.IsValid)
+        if (!_form.IsValid)
             return;
 
         try
         {
-            isBusy = true;
+            _isBusy = true;
 
             var request = new RegisterRequest(
-                model.Email,
-                model.Password,
-                model.UserName,
-                model.FirstName,
-                model.LastName);
+                _model.Email,
+                _model.Password,
+                _model.UserName,
+                _model.FirstName,
+                _model.LastName);
 
             var api = HttpClientFactory.CreateClient("Api");
             var response = await api.PostAsJsonAsync(ApiRoutes.Auth.Register, request);
@@ -107,7 +106,7 @@
         }
         finally
         {
-            isBusy = false;
+            _isBusy = false;
         }
     }
 

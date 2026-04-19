@@ -37,4 +37,10 @@ public sealed class TokenAuthenticationStateProvider(IJSRuntime jsRuntime) : Aut
 		await jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);
 		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 	}
+	
+	public async Task<string?> GetTokenAsync()
+	{
+		var token = await jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
+		return token;
+	}
 }
