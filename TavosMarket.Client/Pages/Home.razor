@@ -1,7 +1,59 @@
 ﻿@page "/"
+@inject IHttpClientFactory HttpClientFactory
 
-<PageTitle>Home</PageTitle>
+<MudContainer Class="mt-10">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">Home</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
 
-<h1>Hello, world!</h1>
+        <MudCardContent>
+            @if (isLoading)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else if (!string.IsNullOrWhiteSpace(result))
+            {
+                <MudText Typo="Typo.body1">@result</MudText>
+            }
+            else if (!string.IsNullOrWhiteSpace(error))
+            {
+                <MudAlert Severity="Severity.Error">@error</MudAlert>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
 
-Welcome to your new app.
+@code {
+    private string? result;
+    private string? error;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var api = HttpClientFactory.CreateClient("Api");
+            var response = await api.GetAsync("/api/health");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                error = $"Request failed: {(int)response.StatusCode} {response.ReasonPhrase}";
+                return;
+            }
+
+            result = await response.Content.ReadAsStringAsync();
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
