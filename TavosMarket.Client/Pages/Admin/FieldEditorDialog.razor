@@ -1,0 +1,95 @@
+﻿@using TavosMarket.Shared.Categories.DTOs
+@using TavosMarket.Shared.Enums
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="Field Name (e.g. Mileage)" @bind-Value="Field.Name" Required="true" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="Field Code (e.g. mileage)" @bind-Value="Field.Code" Required="true" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect T="FieldDataTypeDto" Label="Data Type" @bind-Value="Field.DataTypeDto">
+                        @foreach (FieldDataTypeDto item in Enum.GetValues(typeof(FieldDataTypeDto)))
+                        {
+                            <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField T="int" Label="Sort Order" @bind-Value="Field.SortOrder" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="Unit (e.g. km, kg)" @bind-Value="Field.Unit" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField T="string" Label="Placeholder" @bind-Value="Field.Placeholder" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <div class="d-flex gap-4">
+                        <MudCheckBox T="bool" Label="Required" @bind-Value="Field.IsRequired" Color="Color.Primary" />
+                        <MudCheckBox T="bool" Label="Filterable" @bind-Value="Field.IsFilterable" Color="Color.Primary" />
+                        <MudCheckBox T="bool" Label="Searchable" @bind-Value="Field.IsSearchable" Color="Color.Primary" />
+                    </div>
+                </MudItem>
+
+                @if (Field.DataTypeDto == FieldDataTypeDto.Select || Field.DataTypeDto == FieldDataTypeDto.MultiSelect)
+                {
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                        <div class="d-flex justify-space-between align-center mb-2">
+                            <MudText Typo="Typo.subtitle1">Options</MudText>
+                            <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="AddOption" Size="Size.Small" Variant="Variant.Outlined">Add</MudButton>
+                        </div>
+                        @foreach (var opt in Field.Options.OrderBy(o => o.SortOrder))
+                        {
+                            <div class="d-flex align-center gap-2 mb-2">
+                                <MudTextField T="string" @bind-Value="opt.Value" Label="Value" Dense="true" />
+                                <MudNumericField T="int" @bind-Value="opt.SortOrder" Label="Order" Dense="true" Style="width: 80px;" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => Field.Options.Remove(opt))" />
+                            </div>
+                        }
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Apply</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public CategoryFieldDefinitionDto Field { get; set; } = new();
+    [Parameter] public string Title { get; set; } = "Field Settings";
+
+    private MudForm _form = null!;
+
+    private void AddOption()
+    {
+        Field.Options.Add(new CategoryFieldOptionDto { Id = Guid.NewGuid(), SortOrder = Field.Options.Count + 1 });
+    }
+
+    private async Task Submit()
+    {
+        await _form.ValidateAsync();
+        if (_form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Field));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

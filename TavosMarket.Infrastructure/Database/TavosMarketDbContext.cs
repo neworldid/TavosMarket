@@ -1,17 +1,19 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TavosMarket.Application.Auth;
+using TavosMarket.Application.Interfaces;
 using TavosMarket.Domain.Entities;
 using TavosMarket.Infrastructure.Identity;
 
 namespace TavosMarket.Infrastructure.Database;
 
 public class TavosMarketDbContext(DbContextOptions<TavosMarketDbContext> options, ICurrentUserService currentUserService) 
-	: IdentityDbContext<ApplicationUser, Microsoft.AspNetCore.Identity.IdentityRole<Guid>, Guid>(options)
+	: IdentityDbContext<ApplicationUser, Microsoft.AspNetCore.Identity.IdentityRole<Guid>, Guid>(options), ITavosMarketDbContext
 {
 	public DbSet<Listing> Listings { get; set; }
 	public DbSet<Category> Categories { get; set; }
 	public DbSet<CategoryFieldDefinition> CategoryFieldDefinitions { get; set; }
+	public DbSet<CategoryFieldOption> CategoryFieldOptions { get; set; }
 	public DbSet<ListingFieldValue> ListingFieldValues { get; set; }
 	public DbSet<ListingImage> ListingImages { get; set; }
 	public DbSet<ListingMessage> ListingMessages { get; set; }

@@ -7,6 +7,8 @@ using TavosMarket.Api;
 using TavosMarket.Application.Auth;
 using TavosMarket.Infrastructure.Auth;
 using TavosMarket.Infrastructure.Database;
+using TavosMarket.Application.Interfaces;
+using TavosMarket.Application.Services;
 using TavosMarket.Infrastructure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,9 @@ builder.Services
 	.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
 	.AddEntityFrameworkStores<TavosMarketDbContext>()
 	.AddDefaultTokenProviders();
+
+builder.Services.AddScoped<ITavosMarketDbContext>(provider =>
+	provider.GetRequiredService<TavosMarketDbContext>());
 
 builder.Services.AddAuthentication(options =>
 	{
@@ -52,6 +57,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddCors(options =>

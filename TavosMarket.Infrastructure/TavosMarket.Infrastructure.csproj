@@ -8,7 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TavosMarket.Application\TavosMarket.Application.csproj" />
-      <ProjectReference Include="..\TavosMarket.Domain\TavosMarket.Domain.csproj" />
+      <ProjectReference Include="..\TavosMarket.Domain\TavosMarket.Domain.csproj"  PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>

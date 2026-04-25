@@ -1,0 +1,110 @@
+﻿@page "/admin/categories"
+@using TavosMarket.Shared.Categories.DTOs
+@using TavosMarket.Shared
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudText Typo="Typo.h4" Class="mb-4">Manage Categories</MudText>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateNewCategory" Class="mb-4" StartIcon="@Icons.Material.Filled.Add">
+        Add Category
+    </MudButton>
+
+    <MudTable Items="@_categories" Loading="@_loading" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="2">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Slug</MudTh>
+            <MudTh>Order</MudTh>
+            <MudTh>Active</MudTh>
+            <MudTh Style="width: 120px;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Slug">@context.Slug</MudTd>
+            <MudTd DataLabel="Order">@context.SortOrder</MudTd>
+            <MudTd DataLabel="Active">
+                <MudCheckBox Value="@context.IsActive" ReadOnly="true" Color="Color.Primary" />
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => EditCategory(context.Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteCategory(context))" />
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No categories found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private List<CategoryDto> _categories = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            _categories = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading categories: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void CreateNewCategory()
+    {
+        NavigationManager.NavigateTo("/admin/categories/create");
+    }
+
+    private void EditCategory(Guid id)
+    {
+        NavigationManager.NavigateTo($"/admin/categories/edit/{id}");
+    }
+
+    private async Task DeleteCategory(CategoryDto category)
+    {
+        var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete category '{category.Name}'?");
+
+        if (confirmed)
+        {
+            try
+            {
+                var client = HttpClientFactory.CreateClient("Api");
+                var url = ApiRoutes.Categories.AdminById.Replace("{id}", category.Id.ToString());
+                var response = await client.DeleteAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Category deleted", Severity.Success);
+                    await LoadCategories();
+                }
+                else
+                {
+                    Snackbar.Add("Error during deletion", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Error: " + ex.Message, Severity.Error);
+            }
+        }
+    }
+}
