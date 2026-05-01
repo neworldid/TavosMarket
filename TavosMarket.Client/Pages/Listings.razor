@@ -1,0 +1,119 @@
+@page "/listings"
+@using TavosMarket.Shared.Listings.DTOs
+@using TavosMarket.Shared
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
+        <MudText Typo="Typo.h4">Listings</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="NavigateToAddListing">
+            Post a Listing
+        </MudButton>
+    </MudStack>
+
+    <MudGrid>
+        @if (_loading)
+        {
+            @for (int i = 0; i < 8; i++)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+                        <MudCardContent>
+                            <MudSkeleton Width="80%" />
+                            <MudSkeleton Width="40%" />
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+        else if (!_listings.Any())
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4">
+                    No listings yet. Be the first to post one!
+                </MudAlert>
+            </MudItem>
+        }
+        else
+        {
+            @foreach (var listing in _listings)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="h-100 hover-card" @onclick="@(() => ViewListing(listing.Id))">
+                        <div style="position: relative;">
+                            <MudCardMedia Image="@(listing.Images.FirstOrDefault(i => i.IsMain)?.Url ?? "https://via.placeholder.com/300x200?text=No+Image")" Height="200" />
+                            <div style="position: absolute; bottom: 8px; left: 8px;">
+                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">@listing.Price.ToString("N0") ₽</MudChip>
+                            </div>
+                        </div>
+                        <MudCardContent>
+                            <MudText Typo="Typo.subtitle1" Class="text-truncate"><b>@listing.Title</b></MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@listing.Category?.Name</MudText>
+                            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(listing.City) ? "City not specified" : listing.City)</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+</MudContainer>
+
+<style>
+    .hover-card {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .hover-card:hover {
+        transform: translateY(-4px);
+    }
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+
+@code {
+    private List<ListingDto> _listings = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadListings();
+    }
+
+    private async Task LoadListings()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            _listings = await client.GetFromJsonAsync<List<ListingDto>>(ApiRoutes.Listings.Base) ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading listings: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void NavigateToAddListing()
+    {
+        NavigationManager.NavigateTo("/listings/add");
+    }
+
+    private void ViewListing(Guid id)
+    {
+        // NavigationManager.NavigateTo($"/listings/{id}");
+        Snackbar.Add("Listing view is not implemented yet", Severity.Info);
+    }
+}

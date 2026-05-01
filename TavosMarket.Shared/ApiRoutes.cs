@@ -21,4 +21,13 @@ public static class ApiRoutes
 		public const string Admin = "/api/categories/admin";
 		public const string AdminById = "/api/categories/admin/{id}";
 	}
+
+	public static class Listings
+	{
+		public const string Base = "/api/listings";
+		public const string GetById = "/api/listings/{id}";
+		public const string Create = "/api/listings";
+		public const string Update = "/api/listings/{id}";
+		public const string Delete = "/api/listings/{id}";
+	}
 }

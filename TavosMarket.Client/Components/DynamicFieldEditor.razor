@@ -1,0 +1,93 @@
+﻿@using TavosMarket.Shared.Enums
+@using TavosMarket.Shared.Listings.DTOs
+@using TavosMarket.Shared.Categories.DTOs
+
+<MudItem xs="12" md="6">
+    @switch (Field.DataTypeDto)
+    {
+        case FieldDataTypeDto.Text:
+            <MudTextField T="string" 
+                          Label="@Field.Name" 
+                          @bind-Value="Value.StringValue" 
+                          Required="@Field.IsRequired" 
+                          Placeholder="@Field.Placeholder" 
+                          AdornmentText="@Field.Unit" 
+                          Adornment="Adornment.End" />
+            break;
+
+        case FieldDataTypeDto.MultilineText:
+            <MudTextField T="string" 
+                          Label="@Field.Name" 
+                          @bind-Value="Value.StringValue" 
+                          Required="@Field.IsRequired" 
+                          Placeholder="@Field.Placeholder" 
+                          Lines="3" />
+            break;
+
+        case FieldDataTypeDto.Integer:
+            <MudNumericField T="int?" 
+                             Label="@Field.Name" 
+                             @bind-Value="Value.IntValue" 
+                             Required="@Field.IsRequired" 
+                             Placeholder="@Field.Placeholder" 
+                             AdornmentText="@Field.Unit" 
+                             Adornment="Adornment.End" />
+            break;
+
+        case FieldDataTypeDto.Decimal:
+            <MudNumericField T="decimal?" 
+                             Label="@Field.Name" 
+                             @bind-Value="Value.DecimalValue" 
+                             Required="@Field.IsRequired" 
+                             Placeholder="@Field.Placeholder" 
+                             AdornmentText="@Field.Unit" 
+                             Adornment="Adornment.End" />
+            break;
+
+        case FieldDataTypeDto.Boolean:
+            <MudCheckBox T="bool?" 
+                         Label="@Field.Name" 
+                         @bind-Value="Value.BoolValue" 
+                         Color="Color.Primary" />
+            break;
+
+        case FieldDataTypeDto.Date:
+        case FieldDataTypeDto.DateTime:
+            <MudDatePicker Label="@Field.Name" 
+                           @bind-Date="DateValue" 
+                           Required="@Field.IsRequired" 
+                           Placeholder="@Field.Placeholder" />
+            break;
+
+        case FieldDataTypeDto.Select:
+            <MudSelect T="Guid?" 
+                       Label="@Field.Name" 
+                       @bind-Value="Value.OptionId" 
+                       Required="@Field.IsRequired" 
+                       AnchorOrigin="Origin.BottomCenter">
+                <MudSelectItem T="Guid?" Value="null">Select option...</MudSelectItem>
+                @foreach (var opt in Field.Options.OrderBy(o => o.SortOrder))
+                {
+                    <MudSelectItem T="Guid?" Value="@opt.Id">@opt.Value</MudSelectItem>
+                }
+            </MudSelect>
+            break;
+
+        case FieldDataTypeDto.MultiSelect:
+            break;
+        default:
+            <MudText Color="Color.Error">Unsupported field type: @Field.DataTypeDto</MudText>
+            break;
+    }
+</MudItem>
+
+@code {
+    [Parameter] public CategoryFieldDefinitionDto Field { get; set; } = null!;
+    [Parameter] public ListingFieldValueDto Value { get; set; } = null!;
+
+    private DateTime? DateValue
+    {
+        get => Value.DateValue;
+        set => Value.DateValue = value;
+    }
+}
