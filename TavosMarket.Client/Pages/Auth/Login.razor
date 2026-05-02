@@ -9,6 +9,7 @@
 @inject NavigationManager Navigation;
 @inject ISnackbar Snackbar;
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JsRuntime
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
     <MudCard>
@@ -32,6 +33,10 @@
                                   InputType="InputType.Password"
                                   For="() => _model.Password" />
 
+                    <MudCheckBox @bind-Value="_model.RememberPassword"
+                                 Label="Remember password"
+                                 Color="Color.Primary" />
+
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
                                FullWidth="true"
@@ -53,9 +58,25 @@
 </MudContainer>
 
 @code {
+    private const string RememberPasswordKey = "loginRememberPassword";
+    private const string RememberedEmailKey = "loginEmail";
+    private const string RememberedPasswordKey = "loginPassword";
+
     private readonly LoginVm _model = new();
     private bool _isBusy;
     private MudForm _form = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rememberPassword = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", RememberPasswordKey);
+
+        if (rememberPassword != "true")
+            return;
+
+        _model.RememberPassword = true;
+        _model.Email = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", RememberedEmailKey) ?? string.Empty;
+        _model.Password = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", RememberedPasswordKey) ?? string.Empty;
+    }
 
     private async Task HandleLogin()
     {
@@ -88,6 +109,19 @@
                 return;
             }
 
+            if (_model.RememberPassword)
+            {
+                await JsRuntime.InvokeVoidAsync("localStorage.setItem", RememberPasswordKey, "true");
+                await JsRuntime.InvokeVoidAsync("localStorage.setItem", RememberedEmailKey, _model.Email);
+                await JsRuntime.InvokeVoidAsync("localStorage.setItem", RememberedPasswordKey, _model.Password);
+            }
+            else
+            {
+                await JsRuntime.InvokeVoidAsync("localStorage.removeItem", RememberPasswordKey);
+                await JsRuntime.InvokeVoidAsync("localStorage.removeItem", RememberedEmailKey);
+                await JsRuntime.InvokeVoidAsync("localStorage.removeItem", RememberedPasswordKey);
+            }
+
             if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
                 await tokenProvider.SetTokenAsync(authResponse.AccessToken);
 
@@ -102,14 +136,16 @@
         {
             _isBusy = false;
         }
-        
     }
 
     private sealed class LoginVm
     {
         [Required]
         public string Email { get; set; } = string.Empty;
+
         [Required]
         public string Password { get; set; } = string.Empty;
+
+        public bool RememberPassword { get; set; }
     }
 }

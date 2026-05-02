@@ -38,6 +38,10 @@ public class ListingImageDto
     public string? ThumbnailUrl { get; set; }
     public int SortOrder { get; set; }
     public bool IsMain { get; set; }
+    
+    // For uploading new images
+    public byte[]? Data { get; set; }
+    public string? FileName { get; set; }
 }
 
 public class ListingFieldValueDto

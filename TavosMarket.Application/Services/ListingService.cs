@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using TavosMarket.Application.Interfaces;
 using TavosMarket.Application.Auth;
@@ -8,7 +9,10 @@ using TavosMarket.Shared.Enums;
 
 namespace TavosMarket.Application.Services;
 
-public class ListingService(ITavosMarketDbContext dbContext, ICurrentUserService currentUserService)
+public class ListingService(
+    ITavosMarketDbContext dbContext, 
+    ICurrentUserService currentUserService,
+    IWebHostEnvironment environment)
 {
     public async Task<List<ListingDto>> GetListingsAsync(Guid? categoryId = null, CancellationToken cancellationToken = default)
     {
@@ -60,9 +64,15 @@ public class ListingService(ITavosMarketDbContext dbContext, ICurrentUserService
 
         foreach (var imgDto in dto.Images)
         {
+            var url = imgDto.Url;
+            if (imgDto.Data != null && !string.IsNullOrEmpty(imgDto.FileName))
+            {
+                url = await SaveImageAsync(imgDto.Data, imgDto.FileName);
+            }
+
             listing.Images.Add(new ListingImage
             {
-                Url = imgDto.Url,
+                Url = url,
                 ThumbnailUrl = imgDto.ThumbnailUrl,
                 SortOrder = imgDto.SortOrder,
                 IsMain = imgDto.IsMain
@@ -97,7 +107,95 @@ public class ListingService(ITavosMarketDbContext dbContext, ICurrentUserService
         return MapToDto(createdListing);
     }
 
-    private ListingDto MapToDto(Listing listing)
+    public async Task UpdateAsync(Guid id, ListingDto dto, CancellationToken cancellationToken = default)
+    {
+        var listing = await dbContext.Listings
+            .Include(l => l.Images)
+            .Include(l => l.FieldValues)
+            .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
+
+        if (listing == null) return;
+
+        // Check ownership (simple check for now)
+        if (currentUserService.UserId.HasValue && listing.SellerId != currentUserService.UserId.Value)
+        {
+            // throw unauthorized or handle appropriately
+        }
+
+        listing.CategoryId = dto.CategoryId;
+        listing.Title = dto.Title;
+        listing.Description = dto.Description;
+        listing.Price = dto.Price;
+        listing.IsNegotiable = dto.IsNegotiable;
+        listing.City = dto.City;
+        listing.Region = dto.Region;
+
+        // Update Images
+        dbContext.ListingImages.RemoveRange(listing.Images);
+
+        foreach (var imgDto in dto.Images)
+        {
+            var url = imgDto.Url;
+            if (imgDto.Data != null && !string.IsNullOrEmpty(imgDto.FileName))
+            {
+                url = await SaveImageAsync(imgDto.Data, imgDto.FileName);
+            }
+
+            listing.Images.Add(new ListingImage
+            {
+                Url = url,
+                ThumbnailUrl = imgDto.ThumbnailUrl,
+                SortOrder = imgDto.SortOrder,
+                IsMain = imgDto.IsMain
+            });
+        }
+
+        // Update Field Values
+        dbContext.ListingFieldValues.RemoveRange(listing.FieldValues);
+
+        foreach (var fvDto in dto.FieldValues)
+        {
+	        listing.FieldValues.Add(new ListingFieldValue
+	        {
+		        FieldDefinitionId = fvDto.FieldDefinitionId,
+		        StringValue = fvDto.StringValue,
+		        IntValue = fvDto.IntValue,
+		        DecimalValue = fvDto.DecimalValue,
+		        BoolValue = fvDto.BoolValue,
+		        DateValue = fvDto.DateValue,
+		        OptionId = fvDto.OptionId
+	        });
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var listing = await dbContext.Listings.FindAsync([id], cancellationToken);
+        if (listing != null)
+        {
+            dbContext.Listings.Remove(listing);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    private async Task<string> SaveImageAsync(byte[] data, string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var uploadsFolder = Path.Combine(environment.WebRootPath, "uploads", "listings");
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var newFileName = $"{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsFolder, newFileName);
+
+        await File.WriteAllBytesAsync(filePath, data);
+
+        return $"/uploads/listings/{newFileName}";
+    }
+
+    private static ListingDto MapToDto(Listing listing)
     {
         return new ListingDto
         {

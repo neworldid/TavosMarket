@@ -42,11 +42,11 @@
             @foreach (var listing in _listings)
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudCard Elevation="2" Class="h-100 hover-card" @onclick="@(() => ViewListing(listing.Id))">
+                    <MudCard Elevation="2" Class="h-100 hover-card" @onclick="@(() => EditListing(listing.Id))">
                         <div style="position: relative;">
-                            <MudCardMedia Image="@(listing.Images.FirstOrDefault(i => i.IsMain)?.Url ?? "https://via.placeholder.com/300x200?text=No+Image")" Height="200" />
+                            <MudCardMedia Image="@GetListingImageUrl(listing)" Height="200" />
                             <div style="position: absolute; bottom: 8px; left: 8px;">
-                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">@listing.Price.ToString("N0") ₽</MudChip>
+                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">@listing.Price.ToString("N0") €</MudChip>
                             </div>
                         </div>
                         <MudCardContent>
@@ -87,6 +87,19 @@
     {
         await LoadListings();
     }
+    
+    private string GetListingImageUrl(ListingDto listing)
+    {
+        var url = listing.Images.FirstOrDefault(i => i.IsMain)?.Url
+               ?? listing.Images?.FirstOrDefault()?.Url;
+
+        if (string.IsNullOrEmpty(url)) return "/images/no-image.png";
+
+        if (url.StartsWith("http")) return url;
+
+        var client = HttpClientFactory.CreateClient("Api");
+        return $"{client.BaseAddress?.ToString().TrimEnd('/')}{url}";
+    }
 
     private async Task LoadListings()
     {
@@ -111,9 +124,8 @@
         NavigationManager.NavigateTo("/listings/add");
     }
 
-    private void ViewListing(Guid id)
+    private void EditListing(Guid id)
     {
-        // NavigationManager.NavigateTo($"/listings/{id}");
-        Snackbar.Add("Listing view is not implemented yet", Severity.Info);
+        NavigationManager.NavigateTo($"/listings/edit/{id}");
     }
 }

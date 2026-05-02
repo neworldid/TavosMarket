@@ -16,6 +16,8 @@ public class ListingEndpoint : IEndpoint
         
         var authGroup = builder.MapGroup("").RequireAuthorization();
         authGroup.MapPost(ApiRoutes.Listings.Create, Create);
+        authGroup.MapPut(ApiRoutes.Listings.Update, Update);
+        authGroup.MapDelete(ApiRoutes.Listings.Delete, Delete);
     }
 
     private static async Task<IResult> GetAll(
@@ -36,5 +38,17 @@ public class ListingEndpoint : IEndpoint
     {
         var result = await listingService.CreateAsync(request, ct);
         return TypedResults.Created($"{ApiRoutes.Listings.Base}/{result.Id}", result);
+    }
+
+    private static async Task<IResult> Update(Guid id, [FromBody] ListingDto request, ListingService listingService, CancellationToken ct)
+    {
+        await listingService.UpdateAsync(id, request, ct);
+        return TypedResults.NoContent();
+    }
+
+    private static async Task<IResult> Delete(Guid id, ListingService listingService, CancellationToken ct)
+    {
+        await listingService.DeleteAsync(id, ct);
+        return TypedResults.NoContent();
     }
 }

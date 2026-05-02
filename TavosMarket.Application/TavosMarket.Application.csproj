@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <FrameworkReference Include="Microsoft.AspNetCore.App" />
       <ProjectReference Include="..\TavosMarket.Domain\TavosMarket.Domain.csproj" PrivateAssets="all" />
       <ProjectReference Include="..\TavosMarket.Shared\TavosMarket.Shared.csproj" />
     </ItemGroup>

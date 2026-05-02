@@ -80,6 +80,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("Client");
 app.UseAuthentication();
 app.UseAuthorization();
