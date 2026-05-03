@@ -14,10 +14,16 @@ public sealed class TokenAuthenticationStateProvider(IJSRuntime jsRuntime) : Aut
 		var token = await jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
 
 		if (string.IsNullOrWhiteSpace(token))
-			return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+			return CreateAnonymousState();
 
 		var handler = new JwtSecurityTokenHandler();
 		var jwt = handler.ReadJwtToken(token);
+
+		if (jwt.ValidTo <= DateTime.UtcNow)
+		{
+			await jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);
+			return CreateAnonymousState();
+		}
 
 		var claims = jwt.Claims.ToList();
 		var identity = new ClaimsIdentity(claims, "jwt");
@@ -37,10 +43,15 @@ public sealed class TokenAuthenticationStateProvider(IJSRuntime jsRuntime) : Aut
 		await jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);
 		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 	}
-	
+
 	public async Task<string?> GetTokenAsync()
 	{
 		var token = await jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
 		return token;
+	}
+
+	private static AuthenticationState CreateAnonymousState()
+	{
+		return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 	}
 }
