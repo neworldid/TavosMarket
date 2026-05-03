@@ -1,13 +1,32 @@
-﻿<div class="top-navmenu">
-    <MudNavMenu Class="d-flex flex-row align-center gap-4">
-        <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
-        <MudNavLink Href="/listings" Match="NavLinkMatch.Prefix">Listings</MudNavLink>
-        <AuthorizeView Roles="Admin">
-            <MudNavLink Href="/admin/categories" Match="NavLinkMatch.Prefix">Categories</MudNavLink>
-        </AuthorizeView>
-    </MudNavMenu>
-</div>
+﻿<MudStack Row="true" Spacing="2" Class="ml-6">
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Class="nav-link-item">Dashboard</MudNavLink>
+    <MudNavLink Href="/listings" Match="NavLinkMatch.Prefix" Class="nav-link-item">Listings</MudNavLink>
+    <AuthorizeView Roles="Admin">
+        <MudNavLink Href="/admin/categories" Match="NavLinkMatch.Prefix" Class="nav-link-item">Categories</MudNavLink>
+    </AuthorizeView>
+</MudStack>
 
-@code {
-    
-}
+<style>
+    .nav-link-item {
+        margin-top: 0 !important;
+    }
+    .nav-link-item .mud-nav-link {
+        color: rgba(255,255,255,0.85) !important;
+        border-radius: 8px;
+        padding: 8px 16px !important;
+        transition: all 0.2s;
+        text-decoration: none !important;
+    }
+    .nav-link-item .mud-nav-link-text {
+        margin-inline-start: 0 !important;
+    }
+    .nav-link-item .mud-nav-link.active {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        font-weight: 600;
+    }
+    .nav-link-item .mud-nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+</style>

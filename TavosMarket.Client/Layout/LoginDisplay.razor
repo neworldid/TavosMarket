@@ -11,23 +11,43 @@
                     @context.User.Identity.Name
                 </MudText>
             }
-            <MudIconButton
-                Icon="@Icons.Material.Filled.Logout"
+            <MudButton
+                Variant="Variant.Text"
+                StartIcon="@Icons.Material.Filled.Logout"
                 OnClick="@Logout"
-                title="Log out">
-                Log out
-            </MudIconButton>
+                Color="Color.Inherit"
+                Class="nav-button-item">
+                Logout
+            </MudButton>
         </MudStack>
     </Authorized>
     <NotAuthorized>
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-            <MudIconButton
-                Icon="@Icons.Material.Filled.Login"
+            <MudButton
+                Variant="Variant.Text"
+                StartIcon="@Icons.Material.Filled.Login"
                 OnClick="@Login"
-                title="Login"/>
+                Color="Color.Inherit"
+                Class="nav-button-item">
+                Login
+            </MudButton>
         </MudStack>
     </NotAuthorized>
 </AuthorizeView>
+
+<style>
+    .nav-button-item {
+        color: rgba(255,255,255,0.85) !important;
+        border-radius: 8px !important;
+        padding: 8px 16px !important;
+        text-transform: none !important;
+        transition: all 0.2s;
+    }
+    .nav-button-item:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+</style>
 
 @code {
 
