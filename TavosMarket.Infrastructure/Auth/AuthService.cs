@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using TavosMarket.Application.Auth;
 using TavosMarket.Infrastructure.Identity;
 using TavosMarket.Shared.Auth.DTOs;
@@ -10,7 +12,8 @@ namespace TavosMarket.Infrastructure.Auth;
 public sealed class AuthService(
 	UserManager<ApplicationUser> userManager,
 	SignInManager<ApplicationUser> signInManager,
-	IJwtTokenService jwtTokenService) : IAuthService
+	IJwtTokenService jwtTokenService,
+	IConfiguration configuration) : IAuthService
 {
 	private const string DefaultUserRole = "User";
 	public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
@@ -76,7 +79,41 @@ public sealed class AuthService(
 
 	public async Task<AuthResponse> GoogleLoginAsync(GoogleLoginRequest request, CancellationToken cancellationToken)
 	{
-		throw new NotImplementedException();
+		try
+		{
+			var settings = new GoogleJsonWebSignature.ValidationSettings
+			{
+				Audience = [configuration["Google:ClientId"]]
+			};
+
+			var payload = await GoogleJsonWebSignature.ValidateAsync(request.GoogleToken, settings);
+
+			var user = await userManager.FindByEmailAsync(payload.Email);
+			if (user is null)
+			{
+				user = new ApplicationUser
+				{
+					Id = Guid.NewGuid(),
+					Email = payload.Email,
+					UserName = payload.Email,
+					FirstName = payload.GivenName,
+					LastName = payload.FamilyName,
+					EmailConfirmed = true
+				};
+
+				var result = await userManager.CreateAsync(user);
+				if (!result.Succeeded)
+					throw new InvalidOperationException(string.Join("; ", result.Errors.Select(x => x.Description)));
+
+				await userManager.AddToRoleAsync(user, DefaultUserRole);
+			}
+
+			return await CreateAuthResponseAsync(user, cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			throw new InvalidOperationException("Google authentication failed.", ex);
+		}
 	}
 
 	private async Task<AuthResponse> CreateAuthResponseAsync(ApplicationUser user, CancellationToken cancellationToken)

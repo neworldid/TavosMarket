@@ -8,10 +8,11 @@
 
     <ItemGroup>
       <ProjectReference Include="..\TavosMarket.Application\TavosMarket.Application.csproj" />
-      <ProjectReference Include="..\TavosMarket.Domain\TavosMarket.Domain.csproj"  PrivateAssets="all" />
+      <ProjectReference Include="..\TavosMarket.Domain\TavosMarket.Domain.csproj" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Google.Apis.Auth" />
       <PackageReference Include="Microsoft.AspNetCore.Identity" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" />

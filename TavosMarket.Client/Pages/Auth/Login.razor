@@ -5,11 +5,13 @@
 @using TavosMarket.Shared
 @using TavosMarket.Shared.Auth.DTOs
 
+@implements IDisposable
 @inject IHttpClientFactory HttpClientFactory;
 @inject NavigationManager Navigation;
 @inject ISnackbar Snackbar;
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JsRuntime
+@inject IConfiguration Configuration
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
     <MudCard>
@@ -45,6 +47,8 @@
                         Login
                     </MudButton>
 
+                    <div id="googleBtn" class="mt-4"></div>
+
                     <MudText Typo="Typo.body2" Align="Align.Center">
                         Don't have an account?
                         <MudLink Href="/register" Underline="Underline.Hover">
@@ -65,6 +69,7 @@
     private readonly LoginVm _model = new();
     private bool _isBusy;
     private MudForm _form = null!;
+    private DotNetObjectReference<Login>? _objRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,6 +81,57 @@
         _model.RememberPassword = true;
         _model.Email = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", RememberedEmailKey) ?? string.Empty;
         _model.Password = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", RememberedPasswordKey) ?? string.Empty;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _objRef = DotNetObjectReference.Create(this);
+            await JsRuntime.InvokeVoidAsync("initializeGoogleSignIn", _objRef, Configuration["Google:ClientId"]);
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleGoogleSignIn(string token)
+    {
+        try
+        {
+            _isBusy = true;
+            StateHasChanged();
+
+            var request = new GoogleLoginRequest(token);
+            var api = HttpClientFactory.CreateClient("Api");
+            var response = await api.PostAsJsonAsync(ApiRoutes.Auth.GoogleLogin, request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Google login failed.", Severity.Error);
+                return;
+            }
+
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (authResponse is null)
+            {
+                Snackbar.Add("Login response is empty.", Severity.Error);
+                return;
+            }
+
+            if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
+                await tokenProvider.SetTokenAsync(authResponse.AccessToken);
+
+            Snackbar.Add($"Welcome, {authResponse.User.Email}!", Severity.Success);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+            StateHasChanged();
+        }
     }
 
     private async Task HandleLogin()
@@ -148,4 +204,6 @@
 
         public bool RememberPassword { get; set; }
     }
+
+    public void Dispose() => _objRef?.Dispose();
 }
