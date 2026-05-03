@@ -15,6 +15,7 @@ public class ListingEndpoint : IEndpoint
         group.MapGet(ApiRoutes.Listings.GetById, GetById);
         
         var authGroup = builder.MapGroup("").RequireAuthorization();
+        authGroup.MapGet(ApiRoutes.Listings.MyListings, GetMyListings);
         authGroup.MapPost(ApiRoutes.Listings.Create, Create);
         authGroup.MapPut(ApiRoutes.Listings.Update, Update);
         authGroup.MapDelete(ApiRoutes.Listings.Delete, Delete);
@@ -26,6 +27,11 @@ public class ListingEndpoint : IEndpoint
         CancellationToken ct)
     {
         return TypedResults.Ok(await listingService.GetListingsAsync(categoryId, ct));
+    }
+
+    private static async Task<IResult> GetMyListings(ListingService listingService, CancellationToken ct)
+    {
+        return TypedResults.Ok(await listingService.GetCurrentUserListingsAsync(ct));
     }
 
     private static async Task<IResult> GetById(Guid id, ListingService listingService, CancellationToken ct)

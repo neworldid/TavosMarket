@@ -4,6 +4,8 @@
 @using TavosMarket.Shared.Categories.DTOs
 @using TavosMarket.Shared
 @using TavosMarket.Client.Components
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar

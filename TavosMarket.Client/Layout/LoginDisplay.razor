@@ -3,35 +3,40 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<AuthorizeView>
+<AuthorizeView Context="authContext">
     <Authorized>
         <MudStack Row="true" AlignItems="AlignItems.Center">
-            @if (context.User.Identity?.Name != null)
+            @if (authContext.User.Identity?.Name != null)
             {
+                var firstName = authContext.User.FindFirst(ClaimTypes.GivenName)?.Value;
+                var lastName = authContext.User.FindFirst(ClaimTypes.Surname)?.Value;
+                var userName = authContext.User.Identity?.Name;
 
-                var firstName = context.User.FindFirst(ClaimTypes.GivenName)?.Value;
-                var lastName = context.User.FindFirst(ClaimTypes.Surname)?.Value;
-                var userName = context.User.Identity?.Name;
-
-                <MudText Typo="Typo.subtitle1">
-                    @if (firstName != null && lastName != null)
-                    {
-                        @($"{firstName} {lastName}")
-                    }
-                    else
-                    {
-                        @userName
-                    }
-                </MudText>
+                <MudMenu  AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true" Class="ml-2" ActivationEvent="MouseEvent.LeftClick">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Text" 
+                                   Color="Color.Inherit"
+                                   OnClick="@context.ToggleAsync"
+                                   EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
+                                   Class="nav-button-item">
+                            @if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
+                            {
+                                @($"{firstName} {lastName}")
+                            }
+                            else
+                            {
+                                @userName
+                            }
+                        </MudButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Person" OnClick="@(() => Navigation.NavigateTo("/profile"))">Profile</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.List" OnClick="@(() => Navigation.NavigateTo("/my-listings"))">My Listings</MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="@Logout">Logout</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
             }
-            <MudButton
-                Variant="Variant.Text"
-                StartIcon="@Icons.Material.Filled.Logout"
-                OnClick="@Logout"
-                Color="Color.Inherit"
-                Class="nav-button-item">
-                Logout
-            </MudButton>
         </MudStack>
     </Authorized>
     <NotAuthorized>

@@ -1,0 +1,200 @@
+@page "/listings/details/{Id:guid}"
+@using TavosMarket.Shared.Listings.DTOs
+@using TavosMarket.Shared
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    @if (_loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else if (_listing != null)
+    {
+        <MudGrid>
+            <MudItem xs="12" md="7">
+                <MudPaper Class="pa-4">
+                    @if (_listing.Images.Any())
+                    {
+                        <MudCarousel Class="mud-width-full" Style="height:400px;" ShowArrows="true" ShowBullets="true" AutoCycle="false" TData="object">
+                            @foreach (var img in _listing.Images)
+                            {
+                                <MudCarouselItem Transition="Transition.Fade">
+                                    <div class="d-flex justify-center align-center h-100">
+                                        <MudImage Src="@GetFullImageUrl(img.Url)" Height="400" ObjectFit="ObjectFit.Contain" />
+                                    </div>
+                                </MudCarouselItem>
+                            }
+                        </MudCarousel>
+                    }
+                    else
+                    {
+                        <MudImage Src="/images/no-image.png" Height="400" ObjectFit="ObjectFit.Contain" Class="mud-width-full" />
+                    }
+                </MudPaper>
+
+                <MudPaper Class="pa-6 mt-4">
+                    <MudText Typo="Typo.h4" Class="mb-2">@_listing.Title</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">@_listing.Price.ToString("N0") € @(_listing.IsNegotiable ? "(Negotiable)" : "")</MudText>
+                    
+                    <MudDivider Class="my-4" />
+                    
+                    <MudText Typo="Typo.h6" Class="mb-2">Description</MudText>
+                    <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@_listing.Description</MudText>
+
+                    @if (_listing.FieldValues.Any())
+                    {
+                        <MudDivider Class="my-4" />
+                        <MudText Typo="Typo.h6" Class="mb-2">Specifications</MudText>
+                        <MudGrid Spacing="1">
+                            @foreach (var fv in _listing.FieldValues)
+                            {
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@fv.FieldDefinition?.Name</MudText>
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudText Typo="Typo.body2"><b>@GetFieldValueDisplay(fv)</b> @fv.FieldDefinition?.Unit</MudText>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="5">
+                <MudPaper Class="pa-6 mb-4">
+                    <MudStack Spacing="2">
+                        <MudText Typo="Typo.h6">Location</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Color="Color.Primary" />
+                            <MudText Typo="Typo.body1">@_listing.City@(!string.IsNullOrEmpty(_listing.Region) ? $", {_listing.Region}" : "")</MudText>
+                        </MudStack>
+                        
+                        <MudDivider Class="my-4" />
+                        
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Posted on @_listing.CreatedAtUtc.ToLocalTime().ToString("f")</MudText>
+
+                        @if (_isOwner)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" FullWidth="true" Class="mt-4" OnClick="EditListing">
+                                Edit My Listing
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" FullWidth="true" Class="mt-2" OnClick="DeleteListing">
+                                Delete Listing
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Message" FullWidth="true" Class="mt-4">
+                                Contact Seller
+                            </MudButton>
+                        }
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private ListingDto? _listing;
+    private bool _loading = true;
+    private bool _isOwner;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadListing();
+        await CheckOwnership();
+    }
+
+    private async Task LoadListing()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            _listing = await client.GetFromJsonAsync<ListingDto>(ApiRoutes.Listings.GetById.Replace("{id}", Id.ToString()));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading listing: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CheckOwnership()
+    {
+        if (_listing == null) return;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst(c => c.Type == "sub" || c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                _isOwner = _listing.SellerId == userId;
+            }
+        }
+    }
+
+    private string GetFullImageUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "/images/no-image.png";
+        if (url.StartsWith("http")) return url;
+
+        var client = HttpClientFactory.CreateClient("Api");
+        return $"{client.BaseAddress?.ToString().TrimEnd('/')}{url}";
+    }
+
+    private static string GetFieldValueDisplay(ListingFieldValueDto fv)
+    {
+        if (fv.OptionId.HasValue)
+        {
+            return fv.FieldDefinition?.Options.FirstOrDefault(o => o.Id == fv.OptionId)?.Value ?? "-";
+        }
+        
+        if (!string.IsNullOrEmpty(fv.StringValue)) return fv.StringValue;
+        if (fv.IntValue.HasValue) return fv.IntValue.Value.ToString();
+        if (fv.DecimalValue.HasValue) return fv.DecimalValue.Value.ToString("N2");
+        if (fv.BoolValue.HasValue) return fv.BoolValue.Value ? "Yes" : "No";
+        if (fv.DateValue.HasValue) return fv.DateValue.Value.ToShortDateString();
+
+        return "-";
+    }
+
+    private void EditListing()
+    {
+        NavigationManager.NavigateTo($"/listings/edit/{Id}");
+    }
+
+    private async Task DeleteListing()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var response = await client.DeleteAsync(ApiRoutes.Listings.Delete.Replace("{id}", Id.ToString()));
+            
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Listing deleted successfully", Severity.Success);
+                NavigationManager.NavigateTo("/listings");
+            }
+            else
+            {
+                Snackbar.Add("Error deleting listing", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error deleting listing: " + ex.Message, Severity.Error);
+        }
+    }
+}

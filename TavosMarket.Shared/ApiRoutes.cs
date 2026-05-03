@@ -14,6 +14,13 @@ public static class ApiRoutes
 		public const string ResetPassword = "/api/auth/reset-password";
 		public const string GoogleLogin = "/api/auth/google-login";
 	}
+
+	public static class UserProfile
+	{
+		public const string Base = "/api/user-profile";
+		public const string Update = "/api/user-profile";
+	}
+
 	public static class Categories
 	{
 		public const string Base = "/api/categories";
@@ -29,5 +36,6 @@ public static class ApiRoutes
 		public const string Create = "/api/listings";
 		public const string Update = "/api/listings/{id}";
 		public const string Delete = "/api/listings/{id}";
+		public const string MyListings = "/api/listings/my";
 	}
 }

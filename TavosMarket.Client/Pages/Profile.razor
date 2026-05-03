@@ -1,0 +1,115 @@
+@page "/profile"
+@using TavosMarket.Shared.Auth.DTOs
+@using TavosMarket.Shared
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IHttpClientFactory HttpClientFactory
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-6">My Profile</MudText>
+
+        @if (_loading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_profile != null)
+        {
+            <MudForm @ref="_form" @bind-IsValid="@_success">
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField T="string" Label="Email" Value="@_profile.Email" Disabled="true" ReadOnly="true" HelperText="Email cannot be changed" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField T="string" Label="Username" Value="@_profile.UserName" Disabled="true" ReadOnly="true" HelperText="Username cannot be changed" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string" Label="First Name" @bind-Value="_profile.FirstName" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string" Label="Last Name" @bind-Value="_profile.LastName" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField T="string" Label="Phone Number" @bind-Value="_profile.PhoneNumber" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-end mt-6">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProfile" Disabled="@(!_success || _saving)">
+                            @if (_saving)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">Saving...</MudText>
+                            }
+                            else
+                            {
+                                <MudText>Save Changes</MudText>
+                            }
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private UserProfileDto? _profile;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _success;
+    private MudForm? _form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            _profile = await client.GetFromJsonAsync<UserProfileDto>(ApiRoutes.UserProfile.Base);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading profile: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        if (_profile == null) return;
+
+        _saving = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var response = await client.PutAsJsonAsync(ApiRoutes.UserProfile.Update, _profile);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _profile = await response.Content.ReadFromJsonAsync<UserProfileDto>();
+                Snackbar.Add("Profile updated successfully", Severity.Success);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add("Error updating profile: " + error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error saving profile: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

@@ -33,6 +33,21 @@ public class ListingService(
         return listings.Select(MapToDto).ToList();
     }
 
+    public async Task<List<ListingDto>> GetCurrentUserListingsAsync(CancellationToken cancellationToken = default)
+    {
+        var userId = currentUserService.UserId;
+        if (userId == null) return [];
+
+        var listings = await dbContext.Listings
+            .Include(l => l.Category)
+            .Include(l => l.Images)
+            .Where(l => l.SellerId == userId.Value)
+            .OrderByDescending(l => l.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return listings.Select(MapToDto).ToList();
+    }
+
     public async Task<ListingDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var listing = await dbContext.Listings
@@ -116,10 +131,10 @@ public class ListingService(
 
         if (listing == null) return;
 
-        // Check ownership (simple check for now)
-        if (currentUserService.UserId.HasValue && listing.SellerId != currentUserService.UserId.Value)
+        // Check ownership
+        if (currentUserService.UserId != listing.SellerId)
         {
-            // throw unauthorized or handle appropriately
+            throw new UnauthorizedAccessException("You can only update your own listings.");
         }
 
         listing.CategoryId = dto.CategoryId;
@@ -173,11 +188,15 @@ public class ListingService(
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var listing = await dbContext.Listings.FindAsync([id], cancellationToken);
-        if (listing != null)
+        if (listing == null) return;
+
+        if (currentUserService.UserId != listing.SellerId)
         {
-            dbContext.Listings.Remove(listing);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            throw new UnauthorizedAccessException("You can only delete your own listings.");
         }
+
+        dbContext.Listings.Remove(listing);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<string> SaveImageAsync(byte[] data, string fileName)

@@ -57,6 +57,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<ListingService>();
 builder.Services.AddHttpContextAccessor();
