@@ -120,7 +120,7 @@
             if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
                 await tokenProvider.SetTokenAsync(authResponse.AccessToken);
 
-            Snackbar.Add($"Welcome, {authResponse.User.Email}!", Severity.Success);
+            Snackbar.Add($"Welcome, {authResponse.User.FirstName}!", Severity.Success);
             Navigation.NavigateTo("/");
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
-﻿@using TavosMarket.Client.Auth
+﻿@using System.Security.Claims
+@using TavosMarket.Client.Auth
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -7,8 +8,20 @@
         <MudStack Row="true" AlignItems="AlignItems.Center">
             @if (context.User.Identity?.Name != null)
             {
+
+                var firstName = context.User.FindFirst(ClaimTypes.GivenName)?.Value;
+                var lastName = context.User.FindFirst(ClaimTypes.Surname)?.Value;
+                var userName = context.User.Identity?.Name;
+
                 <MudText Typo="Typo.subtitle1">
-                    @context.User.Identity.Name
+                    @if (firstName != null && lastName != null)
+                    {
+                        @($"{firstName} {lastName}")
+                    }
+                    else
+                    {
+                        @userName
+                    }
                 </MudText>
             }
             <MudButton

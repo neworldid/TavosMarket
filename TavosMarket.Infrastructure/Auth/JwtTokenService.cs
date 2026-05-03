@@ -22,7 +22,9 @@ public sealed class JwtTokenService(IConfiguration configuration) : IJwtTokenSer
 			new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
 			new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
 			new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-			new(ClaimTypes.Name, user.UserName ?? string.Empty)
+			new(ClaimTypes.Name, user.UserName ?? string.Empty),
+			new(ClaimTypes.GivenName, user.FirstName ?? string.Empty),
+			new(ClaimTypes.Surname, user.LastName ?? string.Empty)
 		};
 
 		if (extraClaims is not null)
