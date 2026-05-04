@@ -1,6 +1,5 @@
 ﻿@page "/login"
 @using System.ComponentModel.DataAnnotations
-@using System.Net
 @using TavosMarket.Client.Auth
 @using TavosMarket.Shared
 @using TavosMarket.Shared.Auth.DTOs
@@ -106,7 +105,8 @@
 
             if (!response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Google login failed.", Severity.Error);
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                Snackbar.Add(errorResponse?.Error ?? "Google login failed.", Severity.Error);
                 return;
             }
 
@@ -120,7 +120,6 @@
             if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
                 await tokenProvider.SetTokenAsync(authResponse.AccessToken);
 
-            Snackbar.Add($"Welcome, {authResponse.User.FirstName}!", Severity.Success);
             Navigation.NavigateTo("/");
         }
         catch (Exception ex)
@@ -150,13 +149,12 @@
             var api = HttpClientFactory.CreateClient("Api");
             var response = await api.PostAsJsonAsync(ApiRoutes.Auth.Login, request);
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            if (!response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Invalid email or password.", Severity.Error);
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                Snackbar.Add(errorResponse?.Error ?? "Invalid email or password.", Severity.Error);
                 return;
             }
-
-            response.EnsureSuccessStatusCode();
 
             var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
             if (authResponse is null)
@@ -181,12 +179,11 @@
             if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
                 await tokenProvider.SetTokenAsync(authResponse.AccessToken);
 
-            Snackbar.Add($"Welcome, {authResponse.User.Email}!", Severity.Success);
             Navigation.NavigateTo("/");
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            Snackbar.Add(ex.Message, Severity.Error);
         }
         finally
         {

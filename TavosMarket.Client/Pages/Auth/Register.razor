@@ -92,7 +92,13 @@
 
             var api = HttpClientFactory.CreateClient("Api");
             var response = await api.PostAsJsonAsync(ApiRoutes.Auth.Register, request);
-            response.EnsureSuccessStatusCode();
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                Snackbar.Add(errorResponse?.Error ?? "Registration failed.", Severity.Error);
+                return;
+            }
 
             var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
             if (authResponse is null)
@@ -102,6 +108,10 @@
                 await tokenProvider.SetTokenAsync(authResponse.AccessToken);
 
             Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
         }
         finally
         {

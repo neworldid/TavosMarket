@@ -36,8 +36,15 @@ public class AuthEndpoint : IEndpoint
 		IAuthService authService,
 		CancellationToken cancellationToken)
 	{
-		var result = await authService.LoginAsync(request, cancellationToken);
-		return TypedResults.Ok(result);
+		try
+		{
+			var result = await authService.LoginAsync(request, cancellationToken);
+			return TypedResults.Ok(result);
+		}
+		catch (InvalidOperationException ex)
+		{
+			return TypedResults.BadRequest(new { error = ex.Message });
+		}
 	}
 
 	private static async Task<IResult> CurrentUser(
@@ -58,7 +65,14 @@ public class AuthEndpoint : IEndpoint
 		IAuthService authService,
 		CancellationToken cancellationToken)
 	{
-		var result = await authService.GoogleLoginAsync(request, cancellationToken);
-		return TypedResults.Ok(result);
+		try
+		{
+			var result = await authService.GoogleLoginAsync(request, cancellationToken);
+			return TypedResults.Ok(result);
+		}
+		catch (InvalidOperationException ex)
+		{
+			return TypedResults.BadRequest(new { error = ex.Message });
+		}
 	}
 }
