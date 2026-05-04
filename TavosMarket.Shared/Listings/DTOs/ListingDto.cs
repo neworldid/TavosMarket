@@ -54,6 +54,7 @@ public class ListingFieldValueDto
     public bool? BoolValue { get; set; }
     public DateTime? DateValue { get; set; }
     public Guid? OptionId { get; set; }
+    public List<Guid> OptionIds { get; set; } = new();
     
     // For UI binding
     public CategoryFieldDefinitionDto? FieldDefinition { get; set; }

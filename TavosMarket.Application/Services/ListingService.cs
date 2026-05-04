@@ -58,7 +58,7 @@ public class ListingService(
                     case FieldDataType.Select:
                     case FieldDataType.MultiSelect:
                         if (Guid.TryParse(value, out var guidVal))
-                            query = query.Where(l => l.FieldValues.Any(fv => fv.FieldDefinitionId == fieldId && fv.OptionId == guidVal));
+                            query = query.Where(l => l.FieldValues.Any(fv => fv.FieldDefinitionId == fieldId && (fv.OptionId == guidVal || fv.SelectedOptions.Any(so => so.Id == guidVal))));
                         break;
                     case FieldDataType.Integer:
                         if (int.TryParse(value, out var intVal))
@@ -109,6 +109,8 @@ public class ListingService(
             .Include(l => l.FieldValues)
                 .ThenInclude(fv => fv.FieldDefinition)
                     .ThenInclude(fd => fd.Options)
+            .Include(l => l.FieldValues)
+                .ThenInclude(fv => fv.SelectedOptions)
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
         return listing != null ? MapToDto(listing) : null;
@@ -147,9 +149,14 @@ public class ListingService(
             });
         }
 
+        var allOptionIds = dto.FieldValues.SelectMany(fv => fv.OptionIds).Distinct().ToList();
+        var allOptions = await dbContext.CategoryFieldOptions
+            .Where(o => allOptionIds.Contains(o.Id))
+            .ToListAsync(cancellationToken);
+
         foreach (var fvDto in dto.FieldValues)
         {
-            listing.FieldValues.Add(new ListingFieldValue
+            var fv = new ListingFieldValue
             {
                 FieldDefinitionId = fvDto.FieldDefinitionId,
                 StringValue = fvDto.StringValue,
@@ -158,7 +165,14 @@ public class ListingService(
                 BoolValue = fvDto.BoolValue,
                 DateValue = fvDto.DateValue,
                 OptionId = fvDto.OptionId
-            });
+            };
+
+            if (fvDto.OptionIds.Any())
+            {
+                fv.SelectedOptions = allOptions.Where(o => fvDto.OptionIds.Contains(o.Id)).ToList();
+            }
+
+            listing.FieldValues.Add(fv);
         }
 
         dbContext.Listings.Add(listing);
@@ -170,6 +184,8 @@ public class ListingService(
 	        .Include(l => l.FieldValues)
 	        .ThenInclude(fv => fv.FieldDefinition)
 	        .ThenInclude(fd => fd.Options)
+	        .Include(l => l.FieldValues)
+	        .ThenInclude(fv => fv.SelectedOptions)
 	        .FirstAsync(l => l.Id == listing.Id, cancellationToken);
 
         return MapToDto(createdListing);
@@ -177,10 +193,11 @@ public class ListingService(
 
     public async Task UpdateAsync(Guid id, ListingDto dto, CancellationToken cancellationToken = default)
     {
-        var listing = await dbContext.Listings
-            .Include(l => l.Images)
-            .Include(l => l.FieldValues)
-            .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
+	    var listing = await dbContext.Listings
+		    .Include(l => l.Images)
+		    .Include(l => l.FieldValues)
+		    .ThenInclude(fv => fv.SelectedOptions)
+		    .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
         if (listing == null) return;
 
@@ -219,20 +236,36 @@ public class ListingService(
         }
 
         // Update Field Values
+        foreach (var fieldValue in listing.FieldValues)
+        {
+	        fieldValue.SelectedOptions.Clear();
+        }
         dbContext.ListingFieldValues.RemoveRange(listing.FieldValues);
+
+        var allOptionIds = dto.FieldValues.SelectMany(fv => fv.OptionIds).Distinct().ToList();
+        var allOptions = await dbContext.CategoryFieldOptions
+            .Where(o => allOptionIds.Contains(o.Id))
+            .ToListAsync(cancellationToken);
 
         foreach (var fvDto in dto.FieldValues)
         {
-	        listing.FieldValues.Add(new ListingFieldValue
-	        {
-		        FieldDefinitionId = fvDto.FieldDefinitionId,
-		        StringValue = fvDto.StringValue,
-		        IntValue = fvDto.IntValue,
-		        DecimalValue = fvDto.DecimalValue,
-		        BoolValue = fvDto.BoolValue,
-		        DateValue = fvDto.DateValue,
-		        OptionId = fvDto.OptionId
-	        });
+            var fv = new ListingFieldValue
+            {
+                FieldDefinitionId = fvDto.FieldDefinitionId,
+                StringValue = fvDto.StringValue,
+                IntValue = fvDto.IntValue,
+                DecimalValue = fvDto.DecimalValue,
+                BoolValue = fvDto.BoolValue,
+                DateValue = fvDto.DateValue,
+                OptionId = fvDto.OptionId
+            };
+
+            if (fvDto.OptionIds.Any())
+            {
+                fv.SelectedOptions = allOptions.Where(o => fvDto.OptionIds.Contains(o.Id)).ToList();
+            }
+
+            listing.FieldValues.Add(fv);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -305,6 +338,7 @@ public class ListingService(
                 BoolValue = fv.BoolValue,
                 DateValue = fv.DateValue,
                 OptionId = fv.OptionId,
+                OptionIds = fv.SelectedOptions.Select(so => so.Id).ToList(),
                 FieldDefinition = new CategoryFieldDefinitionDto
                 {
 	                Id = fv.FieldDefinition.Id,

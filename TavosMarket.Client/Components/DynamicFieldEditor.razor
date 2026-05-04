@@ -74,6 +74,19 @@
             break;
 
         case FieldDataTypeDto.MultiSelect:
+            <MudSelect T="Guid" 
+                       Label="@Field.Name" 
+                       SelectedValues="SelectedOptions"
+                       SelectedValuesChanged="OnOptionsChanged"
+                       MultiSelection="true"
+                       ToStringFunc="GetOptionText"
+                       Required="@Field.IsRequired"
+                       AnchorOrigin="Origin.BottomCenter">
+                @foreach (var opt in Field.Options.OrderBy(o => o.SortOrder))
+                {
+                    <MudSelectItem T="Guid" Value="@opt.Id">@opt.Value</MudSelectItem>
+                }
+            </MudSelect>
             break;
         default:
             <MudText Color="Color.Error">Unsupported field type: @Field.DataTypeDto</MudText>
@@ -89,5 +102,21 @@
     {
         get => Value.DateValue;
         set => Value.DateValue = value;
+    }
+
+    private IReadOnlyCollection<Guid> SelectedOptions
+    {
+        get => Value.OptionIds;
+        set => Value.OptionIds = value.ToList();
+    }
+
+    private string GetOptionText(Guid optionId)
+    {
+        return Field.Options.FirstOrDefault(o => o.Id == optionId)?.Value ?? optionId.ToString();
+    }
+
+    private void OnOptionsChanged(IEnumerable<Guid> values)
+    {
+        Value.OptionIds = values.ToList();
     }
 }

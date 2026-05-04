@@ -17,6 +17,19 @@ public class TavosMarketDbContext(DbContextOptions<TavosMarketDbContext> options
 	public DbSet<ListingFieldValue> ListingFieldValues { get; set; }
 	public DbSet<ListingImage> ListingImages { get; set; }
 	public DbSet<ListingFavorite> ListingFavorites { get; set; }
+
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
+	{
+		base.OnModelCreating(modelBuilder);
+
+		modelBuilder.Entity<ListingFieldValue>()
+			.HasMany(x => x.SelectedOptions)
+			.WithMany()
+			.UsingEntity<Dictionary<string, object>>(
+				"ListingFieldValueSelectedOption",
+				j => j.HasOne<CategoryFieldOption>().WithMany().OnDelete(DeleteBehavior.NoAction),
+				j => j.HasOne<ListingFieldValue>().WithMany().OnDelete(DeleteBehavior.NoAction));
+	}
 	
 	public override int SaveChanges()
 	{

@@ -167,6 +167,14 @@
 
     private static string GetFieldValueDisplay(ListingFieldValueDto fv)
     {
+        if (fv.OptionIds.Any() && fv.FieldDefinition != null)
+        {
+            var selectedValues = fv.FieldDefinition.Options
+                .Where(o => fv.OptionIds.Contains(o.Id))
+                .Select(o => o.Value);
+            return string.Join(", ", selectedValues);
+        }
+
         if (fv.OptionId.HasValue)
         {
             return fv.FieldDefinition?.Options.FirstOrDefault(o => o.Id == fv.OptionId)?.Value ?? "-";

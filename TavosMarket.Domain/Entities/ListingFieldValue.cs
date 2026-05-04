@@ -20,4 +20,6 @@ public class ListingFieldValue : AuditableEntityBase
 
 	public Guid? OptionId { get; set; }
 	public CategoryFieldOption? Option { get; set; }
+
+	public ICollection<CategoryFieldOption> SelectedOptions { get; set; } = new List<CategoryFieldOption>();
 }

@@ -152,6 +152,7 @@
         if (result is { Canceled: false, Data: CategoryFieldDefinitionDto field })
         {
             _category.FieldDefinitions.Add(field);
+            _success = true;
             StateHasChanged();
         }
     }
@@ -171,12 +172,14 @@
         {
             var index = _category.FieldDefinitions.FindIndex(f => f.Id == field.Id);
             _category.FieldDefinitions[index] = updatedField;
+            _success = true;
             StateHasChanged();
         }
     }
 
     private void RemoveField(CategoryFieldDefinitionDto field)
     {
+        _success = true;
         _category.FieldDefinitions.Remove(field);
     }
 
