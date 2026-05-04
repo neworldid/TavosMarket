@@ -259,11 +259,11 @@
 
     private void NavigateToAddListing()
     {
-        NavigationManager.NavigateTo("/listings/add");
+        NavigationManager.NavigateTo($"/listings/add?returnUrl={Uri.EscapeDataString("/listings")}");
     }
 
     private void NavigateToDetails(Guid id)
     {
-        NavigationManager.NavigateTo($"/listings/details/{id}");
+        NavigationManager.NavigateTo($"/listings/details/{id}?returnUrl={Uri.EscapeDataString("/listings")}");
     }
 }

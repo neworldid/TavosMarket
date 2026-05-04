@@ -240,6 +240,10 @@ public class ListingService(
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
+	    await dbContext.ListingFieldValues
+		    .Where(x => x.ListingId == id)
+		    .ExecuteDeleteAsync(cancellationToken);
+	    
         var listing = await dbContext.Listings.FindAsync([id], cancellationToken);
         if (listing == null) return;
 

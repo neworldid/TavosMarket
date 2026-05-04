@@ -10,13 +10,33 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    @if (Id is not null)
+    {
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   Href=@($"/listings/details/{Id}?returnUrl={BackPage}")
+                   Class="mb-4">
+            Back to Details
+        </MudButton>
+    }
+    else
+    {
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   Href=@BackPage
+                   Class="mb-4">
+            Back to Listings
+        </MudButton>
+    }
     <MudPaper Class="pa-6">
         <MudText Typo="Typo.h4" Class="mb-6">@(IsEdit ? "Edit Listing" : "New Listing")</MudText>
 
         @if (_initializing)
         {
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
         }
         else
         {
@@ -42,53 +62,53 @@
                     @if (_listing.CategoryId != Guid.Empty)
                     {
                         <MudItem xs="12">
-                            <MudTextField T="string" Label="Title" @bind-Value="_listing.Title" Required="true" />
+                            <MudTextField T="string" Label="Title" @bind-Value="_listing.Title" Required="true"/>
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudNumericField T="decimal" Label="Price" @bind-Value="_listing.Price" Required="true" AdornmentText="€" Adornment="Adornment.End" />
+                            <MudNumericField T="decimal" Label="Price" @bind-Value="_listing.Price" Required="true" AdornmentText="€" Adornment="Adornment.End"/>
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudCheckBox T="bool" Label="Price Negotiable" @bind-Value="_listing.IsNegotiable" Color="Color.Primary" />
+                            <MudCheckBox T="bool" Label="Price Negotiable" @bind-Value="_listing.IsNegotiable" Color="Color.Primary"/>
                         </MudItem>
 
                         <MudItem xs="12">
-                            <MudTextField T="string" Label="Description" @bind-Value="_listing.Description" Lines="5" Required="true" />
+                            <MudTextField T="string" Label="Description" @bind-Value="_listing.Description" Lines="5" Required="true"/>
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudTextField T="string" Label="City" @bind-Value="_listing.City" Required="true" />
+                            <MudTextField T="string" Label="City" @bind-Value="_listing.City" Required="true"/>
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudTextField T="string" Label="Region" @bind-Value="_listing.Region" />
+                            <MudTextField T="string" Label="Region" @bind-Value="_listing.Region"/>
                         </MudItem>
 
                         <MudItem xs="12">
-                            <MudDivider Class="my-4" />
+                            <MudDivider Class="my-4"/>
                             <MudText Typo="Typo.h6" Class="mb-2">Specifications</MudText>
                         </MudItem>
 
                         @foreach (var fv in _listing.FieldValues)
                         {
-                            <DynamicFieldEditor Field="fv.FieldDefinition" Value="fv" />
+                            <DynamicFieldEditor Field="fv.FieldDefinition" Value="fv"/>
                         }
 
                         <MudItem xs="12">
-                            <MudDivider Class="my-4" />
+                            <MudDivider Class="my-4"/>
                             <MudText Typo="Typo.h6" Class="mb-2">Images</MudText>
-                            
+
                             <div class="d-flex flex-wrap gap-4 mb-4">
                                 @foreach (var img in _listing.Images)
                                 {
                                     <div style="position: relative;">
-                                        <MudImage Src="@GetImagePreviewUrl(img)" Width="100" Height="100" ObjectFit="ObjectFit.Cover" Class="rounded shadow-sm" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" 
-                                                       Color="Color.Error" 
-                                                       Size="Size.Small" 
+                                        <MudImage Src="@GetImagePreviewUrl(img)" Width="100" Height="100" ObjectFit="ObjectFit.Cover" Class="rounded shadow-sm"/>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       Size="Size.Small"
                                                        Style="position: absolute; top: 0; right: 0; background: rgba(255,255,255,0.7);"
-                                                       OnClick="@(() => RemoveImage(img))" />
+                                                       OnClick="@(() => RemoveImage(img))"/>
                                         @if (img.IsMain)
                                         {
                                             <MudChip T="string" Size="Size.Small" Color="Color.Primary" Style="position: absolute; bottom: 0; left: 0;">Main</MudChip>
@@ -125,7 +145,9 @@
 @code {
     [Parameter] public Guid? Id { get; set; }
     private bool IsEdit => Id.HasValue;
-
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? BackPage { get; set; }
+    
     private MudForm _form = null!;
     private bool _success;
     private bool _loading;

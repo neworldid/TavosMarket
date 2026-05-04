@@ -127,17 +127,17 @@
 
     private void NavigateToAddListing()
     {
-        NavigationManager.NavigateTo("/listings/add");
+        NavigationManager.NavigateTo($"/listings/add?returnUrl={Uri.EscapeDataString("/my-listings")}");
     }
 
     private void NavigateToDetails(Guid id)
     {
-        NavigationManager.NavigateTo($"/listings/details/{id}");
+        NavigationManager.NavigateTo($"/listings/details/{id}?returnUrl={Uri.EscapeDataString("/my-listings")}");
     }
 
     private void EditListing(Guid id)
     {
-        NavigationManager.NavigateTo($"/listings/edit/{id}");
+        NavigationManager.NavigateTo($"/listings/edit/{id}?returnUrl={Uri.EscapeDataString("/my-listings")}");
     }
 
     private async Task DeleteListing(Guid id)

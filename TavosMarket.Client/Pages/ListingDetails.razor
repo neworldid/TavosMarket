@@ -5,8 +5,17 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IDialogService DialogService
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudButton Variant="Variant.Text" 
+               Color="Color.Primary" 
+               StartIcon="@Icons.Material.Filled.ArrowBack" 
+               Href="@BackPage"
+               Class="mb-4">
+        Back to Listings
+    </MudButton>
+
     @if (_loading)
     {
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -100,6 +109,8 @@
 
 @code {
     [Parameter] public Guid Id { get; set; }
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? BackPage { get; set; }
     private ListingDto? _listing;
     private bool _loading = true;
     private bool _isOwner;
@@ -172,20 +183,31 @@
 
     private void EditListing()
     {
-        NavigationManager.NavigateTo($"/listings/edit/{Id}");
+        NavigationManager.NavigateTo($"/listings/edit/{Id}?returnUrl={BackPage}");
     }
 
     private async Task DeleteListing()
     {
         try
         {
+            var result = await DialogService.ShowMessageBoxAsync(
+                title: "Confirmation",
+                markupMessage: (MarkupString)"Are you sure about deleting?",
+                yesText: "Delete",
+                cancelText: "Cancel");
+
+            if (result != true)
+            {
+                return;
+            }
+            
             var client = HttpClientFactory.CreateClient("Api");
             var response = await client.DeleteAsync(ApiRoutes.Listings.Delete.Replace("{id}", Id.ToString()));
             
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("Listing deleted successfully", Severity.Success);
-                NavigationManager.NavigateTo("/listings");
+                if (BackPage != null) NavigationManager.NavigateTo(BackPage);
             }
             else
             {

@@ -9,11 +9,18 @@
 @inject NavigationManager NavigationManager
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudButton Variant="Variant.Text" 
+               Color="Color.Primary" 
+               StartIcon="@Icons.Material.Filled.ArrowBack" 
+               Href="/admin/categories" 
+               Class="mb-4">
+        Back to Categories
+    </MudButton>
     <MudText Typo="Typo.h4" Class="mb-4">@(IsEdit ? "Edit Category" : "New Category")</MudText>
 
     @if (_loading)
     {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
     }
     else
     {
@@ -21,10 +28,10 @@
             <MudItem xs="12" md="5">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudForm @ref="_form" @bind-IsValid="@_success">
-                        <MudTextField T="string" Label="Name" @bind-Value="_category.Name" Required="true" RequiredError="Name is required" />
-                        <MudTextField T="string" Label="Slug" @bind-Value="_category.Slug" Required="true" RequiredError="Slug is required" />
-                        <MudTextField T="string" Label="Description" @bind-Value="_category.Description" Lines="3" />
-                        
+                        <MudTextField T="string" Label="Name" @bind-Value="_category.Name" Required="true" RequiredError="Name is required"/>
+                        <MudTextField T="string" Label="Slug" @bind-Value="_category.Slug" Required="true" RequiredError="Slug is required"/>
+                        <MudTextField T="string" Label="Description" @bind-Value="_category.Description" Lines="3"/>
+
                         <MudSelect T="Guid?" Label="Parent Category" @bind-Value="_category.ParentId" AnchorOrigin="Origin.BottomCenter" Class="mt-2">
                             <MudSelectItem T="Guid?" Value="null">None (Root)</MudSelectItem>
                             @foreach (var cat in _allCategories.Where(c => c.Id != _category.Id))
@@ -32,9 +39,9 @@
                                 <MudSelectItem T="Guid?" Value="@cat.Id">@cat.Name</MudSelectItem>
                             }
                         </MudSelect>
-                        
-                        <MudNumericField T="int" Label="Sort Order" @bind-Value="_category.SortOrder" Class="mt-2" />
-                        <MudSwitch T="bool" Label="Active" @bind-Value="_category.IsActive" Color="Color.Primary" Class="mt-2" />
+
+                        <MudNumericField T="int" Label="Sort Order" @bind-Value="_category.SortOrder" Class="mt-2"/>
+                        <MudSwitch T="bool" Label="Active" @bind-Value="_category.IsActive" Color="Color.Primary" Class="mt-2"/>
                     </MudForm>
                 </MudPaper>
             </MudItem>
@@ -47,7 +54,7 @@
                             Add Field
                         </MudButton>
                     </div>
-                    
+
                     @if (_category.FieldDefinitions.Count == 0)
                     {
                         <MudAlert Severity="Severity.Info">No fields added yet. Click "Add Field" to configure characteristics for this category.</MudAlert>
@@ -71,8 +78,8 @@
                                     <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@context.DataTypeDto</MudChip>
                                 </MudTd>
                                 <MudTd>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditField(context))" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => RemoveField(context))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditField(context))"/>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => RemoveField(context))"/>
                                 </MudTd>
                             </RowTemplate>
                         </MudTable>
