@@ -1,6 +1,8 @@
 @page "/listings"
 @using TavosMarket.Shared.Listings.DTOs
 @using TavosMarket.Shared
+@using TavosMarket.Shared.Categories.DTOs
+@using TavosMarket.Shared.Enums
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
@@ -14,53 +16,109 @@
     </MudStack>
 
     <MudGrid>
-        @if (_loading)
-        {
-            @for (int i = 0; i < 8; i++)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudCard Elevation="2">
-                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
-                        <MudCardContent>
-                            <MudSkeleton Width="80%" />
-                            <MudSkeleton Width="40%" />
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            }
-        }
-        else if (!_listings.Any())
-        {
-            <MudItem xs="12">
-                <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4">
-                    No listings yet. Be the first to post one!
-                </MudAlert>
-            </MudItem>
-        }
-        else
-        {
-            @foreach (var listing in _listings)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudCard Elevation="2" Class="h-100 hover-card">
-                        <div style="position: relative;" @onclick="@(() => NavigateToDetails(listing.Id))">
-                            <MudCardMedia Image="@GetListingImageUrl(listing)" Height="200" />
-                            <div style="position: absolute; bottom: 8px; left: 8px;">
-                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">@listing.Price.ToString("N0") €</MudChip>
-                            </div>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h6" Class="mb-4">Filters</MudText>
+
+                <MudSelect T="CategoryDto" Label="Category" Value="_selectedCategory" ValueChanged="OnCategoryChanged" Clearable="true" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var category in _categories)
+                    {
+                        <MudSelectItem Value="@category">@category.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudNumericField @bind-Value="_minPrice" Label="Min Price" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Euro" Class="mt-4" />
+                <MudNumericField @bind-Value="_maxPrice" Label="Max Price" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Euro" Class="mt-2" />
+
+                @if (_selectedCategory?.FieldDefinitions != null)
+                {
+                    @foreach (var field in _selectedCategory.FieldDefinitions.Where(f => f.IsFilterable).OrderBy(f => f.SortOrder))
+                    {
+                        <div class="mt-4">
+                            @if (field.DataTypeDto == FieldDataTypeDto.Select || field.DataTypeDto == FieldDataTypeDto.MultiSelect)
+                            {
+                                <MudSelect T="string" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true">
+                                    @foreach (var option in field.Options)
+                                    {
+                                        <MudSelectItem Value="@option.Id.ToString()">@option.Value</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            }
+                            else if (field.DataTypeDto == FieldDataTypeDto.Boolean)
+                            {
+                                <MudSelect T="string" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true">
+                                    <MudSelectItem Value="@("true")">Yes</MudSelectItem>
+                                    <MudSelectItem Value="@("false")">No</MudSelectItem>
+                                </MudSelect>
+                            }
+                            else
+                            {
+                                <MudTextField T="string" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true" Placeholder="@field.Placeholder" />
+                            }
                         </div>
-                        <MudCardContent @onclick="@(() => NavigateToDetails(listing.Id))">
-                            <MudText Typo="Typo.subtitle1" Class="text-truncate"><b>@listing.Title</b></MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@listing.Category?.Name</MudText>
-                            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
-                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(listing.City) ? "City not specified" : listing.City)</MudText>
-                            </MudStack>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            }
-        }
+                    }
+                }
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadListings" FullWidth="true" Class="mt-6">
+                    Apply Filters
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="ResetFilters" FullWidth="true" Class="mt-2">
+                    Reset
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="9">
+            <MudGrid>
+                @if (_loading)
+                {
+                    @for (int i = 0; i < 6; i++)
+                    {
+                        <MudItem xs="12" sm="6" lg="4">
+                            <MudCard Elevation="2">
+                                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+                                <MudCardContent>
+                                    <MudSkeleton Width="80%" />
+                                    <MudSkeleton Width="40%" />
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    }
+                }
+                else if (!_listings.Any())
+                {
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4">
+                            No listings found for the selected filters.
+                        </MudAlert>
+                    </MudItem>
+                }
+                else
+                {
+                    @foreach (var listing in _listings)
+                    {
+                        <MudItem xs="12" sm="6" lg="4">
+                            <MudCard Elevation="2" Class="h-100 hover-card">
+                                <div style="position: relative;" @onclick="@(() => NavigateToDetails(listing.Id))">
+                                    <MudCardMedia Image="@GetListingImageUrl(listing)" Height="200" />
+                                    <div style="position: absolute; bottom: 8px; left: 8px;">
+                                        <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">@listing.Price.ToString("N0") €</MudChip>
+                                    </div>
+                                </div>
+                                <MudCardContent @onclick="@(() => NavigateToDetails(listing.Id))">
+                                    <MudText Typo="Typo.subtitle1" Class="text-truncate"><b>@listing.Title</b></MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@listing.Category?.Name</MudText>
+                                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(listing.City) ? "City not specified" : listing.City)</MudText>
+                                    </MudStack>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    }
+                }
+            </MudGrid>
+        </MudItem>
     </MudGrid>
 </MudContainer>
 
@@ -81,17 +139,82 @@
 
 @code {
     private List<ListingDto> _listings = new();
+    private List<CategoryDto> _categories = new();
+    private CategoryDto? _selectedCategory;
     private bool _loading = true;
+    
+    private decimal? _minPrice;
+    private decimal? _maxPrice;
+    private Dictionary<Guid, string> _fieldFilters = new();
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadCategories();
         await LoadListings();
+    }
+
+    private async Task LoadCategories()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var tree = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? new();
+            _categories = FlattenCategories(tree);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading categories: " + ex.Message, Severity.Error);
+        }
+    }
+
+    private List<CategoryDto> FlattenCategories(List<CategoryDto> categories, string prefix = "")
+    {
+        var result = new List<CategoryDto>();
+        foreach (var cat in categories)
+        {
+            var flatCat = new CategoryDto 
+            { 
+                Id = cat.Id, 
+                Name = prefix + cat.Name,
+                FieldDefinitions = cat.FieldDefinitions
+            };
+            result.Add(flatCat);
+            if (cat.Children.Any())
+            {
+                result.AddRange(FlattenCategories(cat.Children, prefix + "-- "));
+            }
+        }
+        return result;
+    }
+
+    private string? GetFieldValue(Guid fieldId) => _fieldFilters.GetValueOrDefault(fieldId);
+
+    private void SetFieldValue(Guid fieldId, string? value)
+    {
+        if (string.IsNullOrEmpty(value)) _fieldFilters.Remove(fieldId);
+        else _fieldFilters[fieldId] = value;
+    }
+
+    private async Task OnCategoryChanged(CategoryDto? category)
+    {
+        _selectedCategory = category;
+        _fieldFilters.Clear();
+        await LoadListings();
+    }
+
+    private void ResetFilters()
+    {
+        _selectedCategory = null;
+        _minPrice = null;
+        _maxPrice = null;
+        _fieldFilters.Clear();
+        _ = LoadListings();
     }
     
     private string GetListingImageUrl(ListingDto listing)
     {
         var url = listing.Images.FirstOrDefault(i => i.IsMain)?.Url
-               ?? listing.Images?.FirstOrDefault()?.Url;
+               ?? listing.Images.FirstOrDefault()?.Url;
 
         if (string.IsNullOrEmpty(url)) return "/images/no-image.png";
 
@@ -104,10 +227,25 @@
     private async Task LoadListings()
     {
         _loading = true;
+        StateHasChanged();
         try
         {
             var client = HttpClientFactory.CreateClient("Api");
-            _listings = await client.GetFromJsonAsync<List<ListingDto>>(ApiRoutes.Listings.Base) ?? new();
+            var url = $"{ApiRoutes.Listings.Base}?";
+            
+            var queryParams = new List<string>();
+            if (_selectedCategory != null) queryParams.Add($"categoryId={_selectedCategory.Id}");
+            if (_minPrice.HasValue) queryParams.Add($"minPrice={_minPrice.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            if (_maxPrice.HasValue) queryParams.Add($"maxPrice={_maxPrice.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            
+            foreach (var filter in _fieldFilters)
+            {
+                queryParams.Add($"f={filter.Key}:{filter.Value}");
+            }
+            
+            url += string.Join("&", queryParams);
+            
+            _listings = await client.GetFromJsonAsync<List<ListingDto>>(url) ?? [];
         }
         catch (Exception ex)
         {

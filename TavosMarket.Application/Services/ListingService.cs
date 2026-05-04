@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TavosMarket.Application.Interfaces;
 using TavosMarket.Application.Auth;
 using TavosMarket.Domain.Entities;
+using TavosMarket.Domain.Enums;
 using TavosMarket.Shared.Listings.DTOs;
 using TavosMarket.Shared.Categories.DTOs;
 using TavosMarket.Shared.Enums;
@@ -14,16 +15,68 @@ public class ListingService(
     ICurrentUserService currentUserService,
     IWebHostEnvironment environment)
 {
-    public async Task<List<ListingDto>> GetListingsAsync(Guid? categoryId = null, CancellationToken cancellationToken = default)
+    public async Task<List<ListingDto>> GetListingsAsync(ListingFilterDto filter, CancellationToken cancellationToken = default)
     {
         var query = dbContext.Listings
             .Include(l => l.Category)
             .Include(l => l.Images)
             .AsQueryable();
 
-        if (categoryId.HasValue)
+        if (filter.CategoryId.HasValue)
         {
-            query = query.Where(l => l.CategoryId == categoryId.Value);
+            query = query.Where(l => l.CategoryId == filter.CategoryId.Value);
+        }
+
+        if (filter.MinPrice.HasValue)
+        {
+            query = query.Where(l => l.Price >= filter.MinPrice.Value);
+        }
+
+        if (filter.MaxPrice.HasValue)
+        {
+            query = query.Where(l => l.Price <= filter.MaxPrice.Value);
+        }
+
+        if (filter.FieldFilters != null && filter.FieldFilters.Any())
+        {
+            var fieldIds = filter.FieldFilters.Keys.ToList();
+            var fieldDefinitions = await dbContext.CategoryFieldDefinitions
+                .Where(fd => fieldIds.Contains(fd.Id))
+                .ToListAsync(cancellationToken);
+
+            foreach (var fieldFilter in filter.FieldFilters)
+            {
+                var fieldId = fieldFilter.Key;
+                var value = fieldFilter.Value;
+                if (string.IsNullOrWhiteSpace(value)) continue;
+
+                var fd = fieldDefinitions.FirstOrDefault(f => f.Id == fieldId);
+                if (fd == null) continue;
+
+                switch (fd.DataType)
+                {
+                    case FieldDataType.Select:
+                    case FieldDataType.MultiSelect:
+                        if (Guid.TryParse(value, out var guidVal))
+                            query = query.Where(l => l.FieldValues.Any(fv => fv.FieldDefinitionId == fieldId && fv.OptionId == guidVal));
+                        break;
+                    case FieldDataType.Integer:
+                        if (int.TryParse(value, out var intVal))
+                            query = query.Where(l => l.FieldValues.Any(fv => fv.FieldDefinitionId == fieldId && fv.IntValue == intVal));
+                        break;
+                    case FieldDataType.Decimal:
+                        if (decimal.TryParse(value, out var decVal))
+                            query = query.Where(l => l.FieldValues.Any(fv => fv.FieldDefinitionId == fieldId && fv.DecimalValue == decVal));
+                        break;
+                    case FieldDataType.Boolean:
+                        if (bool.TryParse(value, out var boolVal))
+                            query = query.Where(l => l.FieldValues.Any(fv => fv.FieldDefinitionId == fieldId && fv.BoolValue == boolVal));
+                        break;
+                    default:
+                        query = query.Where(l => l.FieldValues.Any(fv => fv.FieldDefinitionId == fieldId && fv.StringValue != null && fv.StringValue.Contains(value)));
+                        break;
+                }
+            }
         }
 
         var listings = await query

@@ -22,11 +22,34 @@ public class ListingEndpoint : IEndpoint
     }
 
     private static async Task<IResult> GetAll(
-        [FromQuery] Guid? categoryId, 
+        [FromQuery] Guid? categoryId,
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery(Name = "f")] string[]? f,
         ListingService listingService, 
         CancellationToken ct)
     {
-        return TypedResults.Ok(await listingService.GetListingsAsync(categoryId, ct));
+        var fieldFilters = new Dictionary<Guid, string>();
+        if (f != null)
+        {
+            foreach (var filterStr in f)
+            {
+                var parts = filterStr.Split(':', 2);
+                if (parts.Length == 2 && Guid.TryParse(parts[0], out var fieldId))
+                {
+                    fieldFilters[fieldId] = parts[1];
+                }
+            }
+        }
+
+        var filter = new ListingFilterDto
+        {
+            CategoryId = categoryId,
+            MinPrice = minPrice,
+            MaxPrice = maxPrice,
+            FieldFilters = fieldFilters
+        };
+        return TypedResults.Ok(await listingService.GetListingsAsync(filter, ct));
     }
 
     private static async Task<IResult> GetMyListings(ListingService listingService, CancellationToken ct)
