@@ -1,13 +1,16 @@
 ﻿@page "/admin/categories/create"
 @page "/admin/categories/edit/{Id:guid}"
+@using Microsoft.AspNetCore.Authorization
 @using TavosMarket.Shared.Categories.DTOs
 @using TavosMarket.Shared.Enums
 @using TavosMarket.Shared
+
 @inject IHttpClientFactory HttpClientFactory
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
+@attribute [Authorize(Roles = "Admin")]
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
     <MudButton Variant="Variant.Text" 
                Color="Color.Primary" 
@@ -29,7 +32,6 @@
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudForm @ref="_form" @bind-IsValid="@_success">
                         <MudTextField T="string" Label="Name" @bind-Value="_category.Name" Required="true" RequiredError="Name is required"/>
-                        <MudTextField T="string" Label="Slug" @bind-Value="_category.Slug" Required="true" RequiredError="Slug is required"/>
                         <MudTextField T="string" Label="Description" @bind-Value="_category.Description" Lines="3"/>
 
                         <MudSelect T="Guid?" Label="Parent Category" @bind-Value="_category.ParentId" AnchorOrigin="Origin.BottomCenter" Class="mt-2">
@@ -72,7 +74,6 @@
                                 <MudTd>@context.SortOrder</MudTd>
                                 <MudTd>
                                     <MudText Typo="Typo.body1">@context.Name</MudText>
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@context.Code</MudText>
                                 </MudTd>
                                 <MudTd>
                                     <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@context.DataTypeDto</MudChip>

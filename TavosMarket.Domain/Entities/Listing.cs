@@ -21,7 +21,6 @@ public class Listing : AuditableEntityBase
 	public Category Category { get; set; } = null!;
 
 	public string Title { get; set; } = string.Empty;
-	public string Slug { get; set; } = string.Empty;
 	public string Description { get; set; } = string.Empty;
 
 	[Precision(9, 2)]
@@ -31,7 +30,6 @@ public class Listing : AuditableEntityBase
 	public ListingStatus Status { get; set; } = ListingStatus.Draft;
 
 	public string? City { get; set; }
-	public string? Region { get; set; }
 
 	public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
 	public ICollection<ListingFieldValue> FieldValues { get; set; } = new List<ListingFieldValue>();

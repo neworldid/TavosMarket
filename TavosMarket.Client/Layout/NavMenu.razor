@@ -1,5 +1,7 @@
 ﻿<MudStack Row="true" Spacing="2" Class="ml-6">
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Class="nav-link-item">Dashboard</MudNavLink>
+    <AuthorizeView>
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Class="nav-link-item">Dashboard</MudNavLink>
+    </AuthorizeView>
     <MudNavLink Href="/listings" Match="NavLinkMatch.Prefix" Class="nav-link-item">Listings</MudNavLink>
     <AuthorizeView Roles="Admin">
         <MudNavLink Href="/admin/categories" Match="NavLinkMatch.Prefix" Class="nav-link-item">Categories</MudNavLink>

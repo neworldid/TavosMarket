@@ -128,7 +128,6 @@ public class ListingService(
             Price = dto.Price,
             IsNegotiable = dto.IsNegotiable,
             City = dto.City,
-            Region = dto.Region,
             Status = ListingStatus.Published // Defaulting to published for now
         };
 
@@ -213,7 +212,6 @@ public class ListingService(
         listing.Price = dto.Price;
         listing.IsNegotiable = dto.IsNegotiable;
         listing.City = dto.City;
-        listing.Region = dto.Region;
 
         // Update Images
         dbContext.ListingImages.RemoveRange(listing.Images);
@@ -316,7 +314,6 @@ public class ListingService(
             Price = listing.Price,
             IsNegotiable = listing.IsNegotiable,
             City = listing.City,
-            Region = listing.Region,
             Status = (ListingStatusDto)listing.Status,
             CreatedAtUtc = listing.CreatedAtUtc,
             Category = new CategoryDto { Id = listing.Category.Id, Name = listing.Category.Name },

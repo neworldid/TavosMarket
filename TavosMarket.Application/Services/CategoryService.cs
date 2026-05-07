@@ -45,7 +45,6 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		{
 			Id = Guid.NewGuid(),
 			Name = categoryDto.Name,
-			Slug = categoryDto.Slug,
 			Description = categoryDto.Description,
 			ParentId = categoryDto.ParentId,
 			SortOrder = categoryDto.SortOrder,
@@ -74,7 +73,6 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		if (category == null) throw new InvalidOperationException("Category not found");
 
 		category.Name = categoryDto.Name;
-		category.Slug = categoryDto.Slug;
 		category.Description = categoryDto.Description;
 		category.ParentId = categoryDto.ParentId;
 		category.SortOrder = categoryDto.SortOrder;
@@ -98,12 +96,10 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 			if (existingFd != null)
 			{
 				existingFd.Name = fdDto.Name;
-				existingFd.Code = fdDto.Code;
 				existingFd.Description = fdDto.Description;
 				existingFd.DataType = (FieldDataType)fdDto.DataTypeDto;
 				existingFd.IsRequired = fdDto.IsRequired;
 				existingFd.IsFilterable = fdDto.IsFilterable;
-				existingFd.IsSearchable = fdDto.IsSearchable;
 				existingFd.SortOrder = fdDto.SortOrder;
 				existingFd.Unit = fdDto.Unit;
 				existingFd.Placeholder = fdDto.Placeholder;
@@ -172,7 +168,6 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		{
 			Id = category.Id,
 			Name = category.Name,
-			Slug = category.Slug,
 			Description = category.Description,
 			ParentId = category.ParentId,
 			ParentName = category.Parent?.Name,
@@ -184,12 +179,10 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 				{
 					Id = fd.Id,
 					Name = fd.Name,
-					Code = fd.Code,
 					Description = fd.Description,
 					DataTypeDto = (FieldDataTypeDto)fd.DataType,
 					IsRequired = fd.IsRequired,
 					IsFilterable = fd.IsFilterable,
-					IsSearchable = fd.IsSearchable,
 					SortOrder = fd.SortOrder,
 					Unit = fd.Unit,
 					Placeholder = fd.Placeholder,
@@ -222,12 +215,10 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		var fd = new CategoryFieldDefinition
 		{
 			Name = dto.Name,
-			Code = dto.Code,
 			Description = dto.Description,
 			DataType = (FieldDataType)dto.DataTypeDto,
 			IsRequired = dto.IsRequired,
 			IsFilterable = dto.IsFilterable,
-			IsSearchable = dto.IsSearchable,
 			SortOrder = dto.SortOrder,
 			Unit = dto.Unit,
 			Placeholder = dto.Placeholder,

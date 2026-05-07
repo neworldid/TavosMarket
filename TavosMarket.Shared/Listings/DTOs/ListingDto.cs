@@ -23,7 +23,6 @@ public class ListingDto
     public decimal Price { get; set; }
     public bool IsNegotiable { get; set; }
     public string? City { get; set; }
-    public string? Region { get; set; }
     public ListingStatusDto Status { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     

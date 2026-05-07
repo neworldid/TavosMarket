@@ -12,9 +12,6 @@
                     <MudTextField T="string" Label="Field Name (e.g. Mileage)" @bind-Value="Field.Name" Required="true" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField T="string" Label="Field Code (e.g. mileage)" @bind-Value="Field.Code" Required="true" />
-                </MudItem>
-                <MudItem xs="12" md="6">
                     <MudSelect T="FieldDataTypeDto" Label="Data Type" @bind-Value="Field.DataTypeDto">
                         @foreach (FieldDataTypeDto item in Enum.GetValues(typeof(FieldDataTypeDto)))
                         {
@@ -36,7 +33,6 @@
                     <div class="d-flex gap-4">
                         <MudCheckBox T="bool" Label="Required" @bind-Value="Field.IsRequired" Color="Color.Primary" />
                         <MudCheckBox T="bool" Label="Filterable" @bind-Value="Field.IsFilterable" Color="Color.Primary" />
-                        <MudCheckBox T="bool" Label="Searchable" @bind-Value="Field.IsSearchable" Color="Color.Primary" />
                     </div>
                 </MudItem>
 

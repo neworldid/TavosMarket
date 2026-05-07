@@ -1,5 +1,7 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
 @inject IHttpClientFactory HttpClientFactory
+@attribute [Authorize]
 
 <MudContainer Class="mt-10">
     <MudCard>
