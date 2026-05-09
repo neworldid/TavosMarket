@@ -42,7 +42,6 @@
                             }
                         </MudSelect>
 
-                        <MudNumericField Variant="Variant.Outlined" T="int" Label="Sort Order" @bind-Value="_category.SortOrder" Class="mt-2"/>
                         <MudSwitch T="bool" Label="Active" @bind-Value="_category.IsActive" Color="Color.Primary" Class="mt-2"/>
                         <MudSwitch T="bool" Label="Direct use for listings" @bind-Value="_category.IsDirectUseForListings" Color="Color.Info" Class="mt-2"/>
                     </MudForm>
@@ -64,12 +63,12 @@
                     }
                     else
                     {
-                        <MudTable Items="@_category.FieldDefinitions" Hover="true" Elevation="0" Dense="true">
+                        <MudTable Items="@_category.FieldDefinitions.OrderBy(f => f.SortOrder)" Hover="true" Elevation="0" Dense="true">
                             <HeaderContent>
                                 <MudTh>Order</MudTh>
                                 <MudTh>Name</MudTh>
                                 <MudTh>Type</MudTh>
-                                <MudTh Style="width: 100px;">Actions</MudTh>
+                                <MudTh Style="width: 160px;">Actions</MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd>@context.SortOrder</MudTd>
@@ -80,8 +79,12 @@
                                     <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">@context.DataTypeDto</MudChip>
                                 </MudTd>
                                 <MudTd>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditField(context))"/>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => RemoveField(context))"/>
+                                    <div class="d-flex">
+                                        <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" OnClick="@(() => MoveFieldUp(context))" Disabled="@(_category.FieldDefinitions.OrderBy(f => f.SortOrder).FirstOrDefault() == context)" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" OnClick="@(() => MoveFieldDown(context))" Disabled="@(_category.FieldDefinitions.OrderBy(f => f.SortOrder).LastOrDefault() == context)" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => EditField(context))"/>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => RemoveField(context))"/>
+                                    </div>
                                 </MudTd>
                             </RowTemplate>
                         </MudTable>
@@ -203,8 +206,42 @@
 
     private void RemoveField(CategoryFieldDefinitionDto field)
     {
-        _success = true;
         _category.FieldDefinitions.Remove(field);
+        NormalizeFieldOrders();
+        _success = true;
+    }
+
+    private void MoveFieldUp(CategoryFieldDefinitionDto field)
+    {
+        var ordered = _category.FieldDefinitions.OrderBy(f => f.SortOrder).ToList();
+        var index = ordered.IndexOf(field);
+        if (index > 0)
+        {
+            var other = ordered[index - 1];
+            (field.SortOrder, other.SortOrder) = (other.SortOrder, field.SortOrder);
+            StateHasChanged();
+        }
+    }
+
+    private void MoveFieldDown(CategoryFieldDefinitionDto field)
+    {
+        var ordered = _category.FieldDefinitions.OrderBy(f => f.SortOrder).ToList();
+        var index = ordered.IndexOf(field);
+        if (index < ordered.Count - 1)
+        {
+            var other = ordered[index + 1];
+            (field.SortOrder, other.SortOrder) = (other.SortOrder, field.SortOrder);
+            StateHasChanged();
+        }
+    }
+
+    private void NormalizeFieldOrders()
+    {
+        var ordered = _category.FieldDefinitions.OrderBy(f => f.SortOrder).ToList();
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            ordered[i].SortOrder = i + 1;
+        }
     }
 
     private async Task Save()
@@ -212,6 +249,7 @@
         await _form.ValidateAsync();
         if (!_form.IsValid) return;
 
+        NormalizeFieldOrders();
         try
         {
             var client = HttpClientFactory.CreateClient("Api");

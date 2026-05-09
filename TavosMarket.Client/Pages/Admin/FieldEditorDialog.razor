@@ -48,8 +48,11 @@
                         {
                             <div class="d-flex align-center gap-2 mb-2">
                                 <MudTextField Variant="Variant.Outlined" T="string" @bind-Value="opt.Value" Label="Value" Dense="true" />
-                                <MudNumericField Variant="Variant.Outlined" T="int" @bind-Value="opt.SortOrder" Label="Order" Dense="true" Style="width: 80px;" />
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => Field.Options.Remove(opt))" />
+                                <div class="d-flex">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" OnClick="@(() => MoveOptionUp(opt))" Disabled="@(Field.Options.OrderBy(o => o.SortOrder).First() == opt)" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" OnClick="@(() => MoveOptionDown(opt))" Disabled="@(Field.Options.OrderBy(o => o.SortOrder).Last() == opt)" />
+                                </div>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => RemoveOption(opt))" />
                             </div>
                         }
                     </MudItem>
@@ -75,11 +78,49 @@
         Field.Options.Add(new CategoryFieldOptionDto { Id = Guid.NewGuid(), SortOrder = Field.Options.Count + 1 });
     }
 
+    private void RemoveOption(CategoryFieldOptionDto opt)
+    {
+        Field.Options.Remove(opt);
+        NormalizeSortOrders();
+    }
+
+    private void MoveOptionUp(CategoryFieldOptionDto opt)
+    {
+        var ordered = Field.Options.OrderBy(o => o.SortOrder).ToList();
+        var index = ordered.IndexOf(opt);
+        if (index > 0)
+        {
+            var other = ordered[index - 1];
+            (opt.SortOrder, other.SortOrder) = (other.SortOrder, opt.SortOrder);
+        }
+    }
+
+    private void MoveOptionDown(CategoryFieldOptionDto opt)
+    {
+        var ordered = Field.Options.OrderBy(o => o.SortOrder).ToList();
+        var index = ordered.IndexOf(opt);
+        if (index < ordered.Count - 1)
+        {
+            var other = ordered[index + 1];
+            (opt.SortOrder, other.SortOrder) = (other.SortOrder, opt.SortOrder);
+        }
+    }
+
+    private void NormalizeSortOrders()
+    {
+        var ordered = Field.Options.OrderBy(o => o.SortOrder).ToList();
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            ordered[i].SortOrder = i + 1;
+        }
+    }
+
     private async Task Submit()
     {
         await _form.ValidateAsync();
         if (_form.IsValid)
         {
+            NormalizeSortOrders();
             MudDialog.Close(DialogResult.Ok(Field));
         }
     }

@@ -191,6 +191,38 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		}
 	}
 
+	public async Task ReorderAsync(Guid categoryId, bool moveUp, CancellationToken cancellationToken = default)
+	{
+		var category = await dbContext.Categories.FindAsync(new object[] { categoryId }, cancellationToken);
+		if (category == null) return;
+
+		var siblings = await dbContext.Categories
+			.Where(c => c.ParentId == category.ParentId)
+			.OrderBy(c => c.SortOrder)
+			.ThenBy(c => c.Name)
+			.ToListAsync(cancellationToken);
+
+		// Normalize orders to ensure consistent behavior
+		for (var i = 0; i < siblings.Count; i++)
+		{
+			siblings[i].SortOrder = i + 1;
+		}
+
+		var index = siblings.FindIndex(c => c.Id == category.Id);
+		if (moveUp && index > 0)
+		{
+			var other = siblings[index - 1];
+			(category.SortOrder, other.SortOrder) = (other.SortOrder, category.SortOrder);
+		}
+		else if (!moveUp && index < siblings.Count - 1)
+		{
+			var other = siblings[index + 1];
+			(category.SortOrder, other.SortOrder) = (other.SortOrder, category.SortOrder);
+		}
+
+		await dbContext.SaveChangesAsync(cancellationToken);
+	}
+
 	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
 	{
 		var category = await dbContext.Categories.FindAsync([id], cancellationToken);

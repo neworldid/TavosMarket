@@ -19,6 +19,7 @@ public class CategoryEndpoint : IEndpoint
 		adminGroup.MapPost(ApiRoutes.Categories.Admin, Create);
 		adminGroup.MapPut(ApiRoutes.Categories.AdminById, Update);
 		adminGroup.MapDelete(ApiRoutes.Categories.AdminById, Delete);
+		adminGroup.MapPost(ApiRoutes.Categories.AdminReorder, Reorder);
 	}
 
 	private static async Task<IResult> GetTree(CategoryService categoryService, CancellationToken ct)
@@ -49,5 +50,11 @@ public class CategoryEndpoint : IEndpoint
 	{
 		await categoryService.DeleteAsync(id, ct);
 		return TypedResults.NoContent();
+	}
+
+	private static async Task<IResult> Reorder(Guid id, [FromQuery] bool moveUp, CategoryService categoryService, CancellationToken ct)
+	{
+		await categoryService.ReorderAsync(id, moveUp, ct);
+		return TypedResults.Ok();
 	}
 }

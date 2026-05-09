@@ -33,8 +33,12 @@
                 <MudCheckBox Value="@context.IsDirectUseForListings" ReadOnly="true" Color="Color.Info" />
             </MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => EditCategory(context.Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteCategory(context))" />
+                <div class="d-flex">
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" OnClick="@(() => ReorderCategory(context.Id, true))" Title="Move Up" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" OnClick="@(() => ReorderCategory(context.Id, false))" Title="Move Down" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => EditCategory(context.Id))" Title="Edit" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteCategory(context))" Title="Delete" />
+                </div>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -107,6 +111,28 @@
     private void EditCategory(Guid id)
     {
         NavigationManager.NavigateTo($"/admin/categories/edit/{id}");
+    }
+
+    private async Task ReorderCategory(Guid id, bool moveUp)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var url = ApiRoutes.Categories.AdminReorder.Replace("{id}", id.ToString()) + $"?moveUp={moveUp}";
+            var response = await client.PostAsync(url, null);
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadCategories();
+            }
+            else
+            {
+                Snackbar.Add("Error reordering", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error: " + ex.Message, Severity.Error);
+        }
     }
 
     private async Task DeleteCategory(CategoryDto category)

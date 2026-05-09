@@ -27,6 +27,7 @@ public static class ApiRoutes
 		public const string GetById = "/api/categories/{id}";
 		public const string Admin = "/api/categories/admin";
 		public const string AdminById = "/api/categories/admin/{id}";
+		public const string AdminReorder = "/api/categories/admin/{id}/reorder";
 	}
 
 	public static class Listings
