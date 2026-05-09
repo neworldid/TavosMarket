@@ -13,7 +13,8 @@ namespace TavosMarket.Application.Services;
 public class ListingService(
     ITavosMarketDbContext dbContext, 
     ICurrentUserService currentUserService,
-    IWebHostEnvironment environment)
+    IWebHostEnvironment environment,
+    CategoryService categoryService)
 {
     public async Task<List<ListingDto>> GetListingsAsync(ListingFilterDto filter, CancellationToken cancellationToken = default)
     {
@@ -24,7 +25,8 @@ public class ListingService(
 
         if (filter.CategoryId.HasValue)
         {
-            query = query.Where(l => l.CategoryId == filter.CategoryId.Value);
+            var categoryIds = await categoryService.GetCategoryIdsRecursiveAsync(filter.CategoryId.Value, cancellationToken);
+            query = query.Where(l => categoryIds.Contains(l.CategoryId));
         }
 
         if (filter.MinPrice.HasValue)
@@ -83,7 +85,8 @@ public class ListingService(
             .OrderByDescending(l => l.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
-        return listings.Select(MapToDto).ToList();
+        var categoryNames = await categoryService.GetFullNamesAsync(cancellationToken);
+        return listings.Select(l => MapToDto(l, categoryNames)).ToList();
     }
 
     public async Task<List<ListingDto>> GetCurrentUserListingsAsync(CancellationToken cancellationToken = default)
@@ -98,7 +101,8 @@ public class ListingService(
             .OrderByDescending(l => l.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
-        return listings.Select(MapToDto).ToList();
+        var categoryNames = await categoryService.GetFullNamesAsync(cancellationToken);
+        return listings.Select(l => MapToDto(l, categoryNames)).ToList();
     }
 
     public async Task<ListingDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -113,11 +117,20 @@ public class ListingService(
                 .ThenInclude(fv => fv.SelectedOptions)
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
-        return listing != null ? MapToDto(listing) : null;
+        if (listing == null) return null;
+
+        var categoryNames = await categoryService.GetFullNamesAsync(cancellationToken);
+        return MapToDto(listing, categoryNames);
     }
 
     public async Task<ListingDto> CreateAsync(ListingDto dto, CancellationToken cancellationToken = default)
     {
+        var category = await dbContext.Categories.FindAsync([dto.CategoryId], cancellationToken);
+        if (category == null || !category.IsDirectUseForListings)
+        {
+            throw new InvalidOperationException("Selected category does not allow direct use for listings.");
+        }
+
         var listing = new Listing
         {
             Id = Guid.NewGuid(),
@@ -187,7 +200,8 @@ public class ListingService(
 	        .ThenInclude(fv => fv.SelectedOptions)
 	        .FirstAsync(l => l.Id == listing.Id, cancellationToken);
 
-        return MapToDto(createdListing);
+        var categoryNames = await categoryService.GetFullNamesAsync(cancellationToken);
+        return MapToDto(createdListing, categoryNames);
     }
 
     public async Task UpdateAsync(Guid id, ListingDto dto, CancellationToken cancellationToken = default)
@@ -204,6 +218,15 @@ public class ListingService(
         if (currentUserService.UserId != listing.SellerId)
         {
             throw new UnauthorizedAccessException("You can only update your own listings.");
+        }
+
+        if (listing.CategoryId != dto.CategoryId)
+        {
+            var category = await dbContext.Categories.FindAsync([dto.CategoryId], cancellationToken);
+            if (category == null || !category.IsDirectUseForListings)
+            {
+                throw new InvalidOperationException("Selected category does not allow direct use for listings.");
+            }
         }
 
         listing.CategoryId = dto.CategoryId;
@@ -302,8 +325,14 @@ public class ListingService(
         return $"/uploads/listings/{newFileName}";
     }
 
-    private static ListingDto MapToDto(Listing listing)
+    private ListingDto MapToDto(Listing listing, Dictionary<Guid, string>? categoryFullNames = null)
     {
+        var categoryDto = new CategoryDto { Id = listing.Category.Id, Name = listing.Category.Name };
+        if (categoryFullNames != null && categoryFullNames.TryGetValue(listing.CategoryId, out var fullName))
+        {
+            categoryDto.FullName = fullName;
+        }
+
         return new ListingDto
         {
             Id = listing.Id,
@@ -316,7 +345,7 @@ public class ListingService(
             City = listing.City,
             Status = (ListingStatusDto)listing.Status,
             CreatedAtUtc = listing.CreatedAtUtc,
-            Category = new CategoryDto { Id = listing.Category.Id, Name = listing.Category.Name },
+            Category = categoryDto,
             Images = listing.Images.Select(i => new ListingImageDto
             {
                 Id = i.Id,

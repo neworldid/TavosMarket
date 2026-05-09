@@ -11,6 +11,7 @@ public class Category : AuditableEntityBase
 
 	public int SortOrder { get; set; }
 	public bool IsActive { get; set; } = true;
+	public bool IsDirectUseForListings { get; set; }
 
 	public ICollection<CategoryFieldDefinition> FieldDefinitions { get; set; } = new List<CategoryFieldDefinition>();
 	public ICollection<Listing> Listings { get; set; } = new List<Listing>();

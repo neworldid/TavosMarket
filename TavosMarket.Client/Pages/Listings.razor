@@ -72,7 +72,7 @@
             <MudGrid>
                 @if (_loading)
                 {
-                    @for (int i = 0; i < 6; i++)
+                    @for (var i = 0; i < 6; i++)
                     {
                         <MudItem xs="12" sm="6" lg="4">
                             <MudCard Elevation="2">
@@ -107,7 +107,7 @@
                                 </div>
                                 <MudCardContent @onclick="@(() => NavigateToDetails(listing.Id))">
                                     <MudText Typo="Typo.subtitle1" Class="text-truncate"><b>@listing.Title</b></MudText>
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@listing.Category?.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@listing.Category?.FullName</MudText>
                                     <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
                                         <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(listing.City) ? "City not specified" : listing.City)</MudText>
@@ -176,12 +176,14 @@
             { 
                 Id = cat.Id, 
                 Name = prefix + cat.Name,
+                FullName = cat.FullName,
+                IsDirectUseForListings = cat.IsDirectUseForListings,
                 FieldDefinitions = cat.FieldDefinitions
             };
             result.Add(flatCat);
             if (cat.Children.Any())
             {
-                result.AddRange(FlattenCategories(cat.Children, prefix + "-- "));
+                result.AddRange(FlattenCategories(cat.Children, prefix + "— "));
             }
         }
         return result;

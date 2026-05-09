@@ -36,19 +36,57 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 
 		if (category == null) return null;
 
-		return MapToDto(category, null);
+		var fullName = category.Name;
+		if (category.ParentId != null)
+		{
+			var names = await GetFullNamesAsync(cancellationToken);
+			names.TryGetValue(category.Id, out fullName);
+		}
+
+		var dto = MapToDto(category, null);
+		dto.FullName = fullName ?? category.Name;
+		return dto;
+	}
+
+	public async Task<Dictionary<Guid, string>> GetFullNamesAsync(CancellationToken cancellationToken = default)
+	{
+		var allCategories = await dbContext.Categories
+			.OrderBy(c => c.SortOrder)
+			.ToListAsync(cancellationToken);
+
+		var result = new Dictionary<Guid, string>();
+		var roots = allCategories.Where(c => c.ParentId == null).ToList();
+
+		foreach (var root in roots)
+		{
+			FillFullNames(root, allCategories, "", result);
+		}
+
+		return result;
+	}
+
+	private void FillFullNames(Category category, List<Category> all, string parentPath, Dictionary<Guid, string> result)
+	{
+		var currentPath = string.IsNullOrEmpty(parentPath) ? category.Name : $"{parentPath} > {category.Name}";
+		result[category.Id] = currentPath;
+
+		var children = all.Where(c => c.ParentId == category.Id).ToList();
+		foreach (var child in children)
+		{
+			FillFullNames(child, all, currentPath, result);
+		}
 	}
 
 	public async Task<CategoryDto> CreateAsync(CategoryDto categoryDto, CancellationToken cancellationToken = default)
 	{
 		var category = new Category
 		{
-			Id = Guid.NewGuid(),
 			Name = categoryDto.Name,
 			Description = categoryDto.Description,
 			ParentId = categoryDto.ParentId,
 			SortOrder = categoryDto.SortOrder,
-			IsActive = categoryDto.IsActive
+			IsActive = categoryDto.IsActive,
+			IsDirectUseForListings = categoryDto.IsDirectUseForListings
 		};
 
 		foreach (var fdDto in categoryDto.FieldDefinitions)
@@ -77,6 +115,7 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		category.ParentId = categoryDto.ParentId;
 		category.SortOrder = categoryDto.SortOrder;
 		category.IsActive = categoryDto.IsActive;
+		category.IsDirectUseForListings = categoryDto.IsDirectUseForListings;
 
 		// Sync FieldDefinitions
 		var existingFds = category.FieldDefinitions.ToList();
@@ -162,17 +201,41 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		}
 	}
 
-	private static CategoryDto MapToDto(Category category, List<Category>? allCategories)
+	public async Task<List<Guid>> GetCategoryIdsRecursiveAsync(Guid categoryId, CancellationToken cancellationToken = default)
 	{
+		var allCategories = await dbContext.Categories
+			.Select(c => new { c.Id, c.ParentId })
+			.ToListAsync(cancellationToken);
+
+		var result = new List<Guid>();
+		FillIdsRecursive(categoryId, allCategories.Select(c => (c.Id, c.ParentId)).ToList(), result);
+		return result;
+	}
+
+	private void FillIdsRecursive(Guid parentId, List<(Guid Id, Guid? ParentId)> all, List<Guid> result)
+	{
+		result.Add(parentId);
+		var children = all.Where(c => c.ParentId == parentId).Select(c => c.Id).ToList();
+		foreach (var childId in children)
+		{
+			FillIdsRecursive(childId, all, result);
+		}
+	}
+
+	private static CategoryDto MapToDto(Category category, List<Category>? allCategories, string parentFullName = "")
+	{
+		var fullName = string.IsNullOrEmpty(parentFullName) ? category.Name : $"{parentFullName} > {category.Name}";
 		var dto = new CategoryDto
 		{
 			Id = category.Id,
 			Name = category.Name,
+			FullName = fullName,
 			Description = category.Description,
 			ParentId = category.ParentId,
 			ParentName = category.Parent?.Name,
 			SortOrder = category.SortOrder,
 			IsActive = category.IsActive,
+			IsDirectUseForListings = category.IsDirectUseForListings,
 			FieldDefinitions = category.FieldDefinitions
 				.OrderBy(fd => fd.SortOrder)
 				.Select(fd => new CategoryFieldDefinitionDto
@@ -203,7 +266,7 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		{
 			dto.Children = allCategories
 				.Where(c => c.ParentId == category.Id)
-				.Select(c => MapToDto(c, allCategories))
+				.Select(c => MapToDto(c, allCategories, fullName))
 				.ToList();
 		}
 

@@ -44,6 +44,7 @@
 
                         <MudNumericField Variant="Variant.Outlined" T="int" Label="Sort Order" @bind-Value="_category.SortOrder" Class="mt-2"/>
                         <MudSwitch T="bool" Label="Active" @bind-Value="_category.IsActive" Color="Color.Primary" Class="mt-2"/>
+                        <MudSwitch T="bool" Label="Direct use for listings" @bind-Value="_category.IsDirectUseForListings" Color="Color.Info" Class="mt-2"/>
                     </MudForm>
                 </MudPaper>
             </MudItem>
@@ -117,7 +118,8 @@
         try
         {
             var client = HttpClientFactory.CreateClient("Api");
-            _allCategories = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? new();
+            var tree = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? new();
+            _allCategories = FlattenCategories(tree);
             
             if (IsEdit)
             {
@@ -136,6 +138,27 @@
         {
             _loading = false;
         }
+    }
+
+    private List<CategoryDto> FlattenCategories(List<CategoryDto> categories, string prefix = "")
+    {
+        var result = new List<CategoryDto>();
+        foreach (var cat in categories)
+        {
+            var flatCat = new CategoryDto 
+            { 
+                Id = cat.Id, 
+                Name = prefix + cat.Name,
+                FullName = cat.FullName,
+                IsDirectUseForListings = cat.IsDirectUseForListings
+            };
+            result.Add(flatCat);
+            if (cat.Children.Any())
+            {
+                result.AddRange(FlattenCategories(cat.Children, prefix + "— "));
+            }
+        }
+        return result;
     }
 
     private async Task AddField()

@@ -20,6 +20,7 @@
             <MudTh>Name</MudTh>
             <MudTh>Order</MudTh>
             <MudTh>Active</MudTh>
+            <MudTh>Listings</MudTh>
             <MudTh Style="width: 120px;">Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -27,6 +28,9 @@
             <MudTd DataLabel="Order">@context.SortOrder</MudTd>
             <MudTd DataLabel="Active">
                 <MudCheckBox Value="@context.IsActive" ReadOnly="true" Color="Color.Primary" />
+            </MudTd>
+            <MudTd DataLabel="Listings">
+                <MudCheckBox Value="@context.IsDirectUseForListings" ReadOnly="true" Color="Color.Info" />
             </MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => EditCategory(context.Id))" />
@@ -57,7 +61,8 @@
         try
         {
             var client = HttpClientFactory.CreateClient("Api");
-            _categories = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? new();
+            var tree = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? new();
+            _categories = FlattenCategories(tree);
         }
         catch (Exception ex)
         {
@@ -67,6 +72,31 @@
         {
             _loading = false;
         }
+    }
+
+    private List<CategoryDto> FlattenCategories(List<CategoryDto> categories, string prefix = "")
+    {
+        var result = new List<CategoryDto>();
+        foreach (var cat in categories)
+        {
+            var flatCat = new CategoryDto 
+            { 
+                Id = cat.Id, 
+                Name = prefix + cat.Name,
+                FullName = cat.FullName,
+                SortOrder = cat.SortOrder,
+                IsActive = cat.IsActive,
+                ParentId = cat.ParentId,
+                ParentName = cat.ParentName,
+                IsDirectUseForListings = cat.IsDirectUseForListings
+            };
+            result.Add(flatCat);
+            if (cat.Children.Any())
+            {
+                result.AddRange(FlattenCategories(cat.Children, prefix + "— "));
+            }
+        }
+        return result;
     }
 
     private void CreateNewCategory()

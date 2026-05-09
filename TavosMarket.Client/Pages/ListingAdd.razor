@@ -47,14 +47,7 @@
                             <MudSelectItem T="Guid?" Value="null">Select Category</MudSelectItem>
                             @foreach (var cat in _categories)
                             {
-                                <MudSelectItem T="Guid?" Value="@cat.Id">@cat.Name</MudSelectItem>
-                                @if (cat.Children.Any())
-                                {
-                                    @foreach (var sub in cat.Children)
-                                    {
-                                        <MudSelectItem T="Guid?" Value="@sub.Id">-- @sub.Name</MudSelectItem>
-                                    }
-                                }
+                                <MudSelectItem T="Guid?" Value="@cat.Id" Disabled="@(!cat.IsDirectUseForListings)">@cat.Name</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -190,7 +183,29 @@
     private async Task LoadCategories()
     {
         var client = HttpClientFactory.CreateClient("Api");
-        _categories = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? new();
+        var tree = await client.GetFromJsonAsync<List<CategoryDto>>(ApiRoutes.Categories.Base) ?? [];
+        _categories = FlattenCategories(tree);
+    }
+
+    private List<CategoryDto> FlattenCategories(List<CategoryDto> categories, string prefix = "")
+    {
+        var result = new List<CategoryDto>();
+        foreach (var cat in categories)
+        {
+            var flatCat = new CategoryDto 
+            { 
+                Id = cat.Id, 
+                Name = prefix + cat.Name,
+                FullName = cat.FullName,
+                IsDirectUseForListings = cat.IsDirectUseForListings
+            };
+            result.Add(flatCat);
+            if (cat.Children.Any())
+            {
+                result.AddRange(FlattenCategories(cat.Children, prefix + "— "));
+            }
+        }
+        return result;
     }
 
     private async Task OnCategoryChanged(Guid? categoryId)
