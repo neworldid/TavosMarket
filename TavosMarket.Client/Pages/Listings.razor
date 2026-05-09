@@ -20,7 +20,7 @@
             <MudPaper Class="pa-4">
                 <MudText Typo="Typo.h6" Class="mb-4">Filters</MudText>
 
-                <MudSelect T="CategoryDto" Label="Category" Value="_selectedCategory" ValueChanged="OnCategoryChanged" Clearable="true" AnchorOrigin="Origin.BottomCenter">
+                <MudSelect T="CategoryDto" Variant="Variant.Outlined" Label="Category" Value="_selectedCategory" ValueChanged="OnCategoryChanged" Clearable="true" AnchorOrigin="Origin.BottomCenter">
                     @foreach (var category in _categories)
                     {
                         <MudSelectItem Value="@category">@category.Name</MudSelectItem>
@@ -37,7 +37,7 @@
                         <div class="mt-4">
                             @if (field.DataTypeDto == FieldDataTypeDto.Select || field.DataTypeDto == FieldDataTypeDto.MultiSelect)
                             {
-                                <MudSelect T="string" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true">
+                                <MudSelect T="string" Variant="Variant.Outlined" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true">
                                     @foreach (var option in field.Options)
                                     {
                                         <MudSelectItem Value="@option.Id.ToString()">@option.Value</MudSelectItem>
@@ -46,7 +46,7 @@
                             }
                             else if (field.DataTypeDto == FieldDataTypeDto.Boolean)
                             {
-                                <MudSelect T="string" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true">
+                                <MudSelect T="string" Variant="Variant.Outlined" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true">
                                     <MudSelectItem Value="@("true")">Yes</MudSelectItem>
                                     <MudSelectItem Value="@("false")">No</MudSelectItem>
                                 </MudSelect>

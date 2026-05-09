@@ -6,7 +6,7 @@
     @switch (Field.DataTypeDto)
     {
         case FieldDataTypeDto.Text:
-            <MudTextField T="string" 
+            <MudTextField Variant="Variant.Outlined"
                           Label="@Field.Name" 
                           @bind-Value="Value.StringValue" 
                           Required="@Field.IsRequired" 
@@ -16,7 +16,7 @@
             break;
 
         case FieldDataTypeDto.MultilineText:
-            <MudTextField T="string" 
+            <MudTextField Variant="Variant.Outlined"
                           Label="@Field.Name" 
                           @bind-Value="Value.StringValue" 
                           Required="@Field.IsRequired" 
@@ -25,7 +25,7 @@
             break;
 
         case FieldDataTypeDto.Integer:
-            <MudNumericField T="int?" 
+            <MudNumericField Variant="Variant.Outlined"
                              Label="@Field.Name" 
                              @bind-Value="Value.IntValue" 
                              Required="@Field.IsRequired" 
@@ -35,7 +35,7 @@
             break;
 
         case FieldDataTypeDto.Decimal:
-            <MudNumericField T="decimal?" 
+            <MudNumericField Variant="Variant.Outlined"
                              Label="@Field.Name" 
                              @bind-Value="Value.DecimalValue" 
                              Required="@Field.IsRequired" 
@@ -45,7 +45,7 @@
             break;
 
         case FieldDataTypeDto.Boolean:
-            <MudCheckBox T="bool?" 
+            <MudCheckBox Variant="Variant.Outlined"
                          Label="@Field.Name" 
                          @bind-Value="Value.BoolValue" 
                          Color="Color.Primary" />
@@ -53,14 +53,16 @@
 
         case FieldDataTypeDto.Date:
         case FieldDataTypeDto.DateTime:
-            <MudDatePicker Label="@Field.Name" 
+            <MudDatePicker Label="@Field.Name"
+                           Variant="Variant.Outlined"
                            @bind-Date="DateValue" 
                            Required="@Field.IsRequired" 
                            Placeholder="@Field.Placeholder" />
             break;
 
         case FieldDataTypeDto.Select:
-            <MudSelect T="Guid?" 
+            <MudSelect T="Guid?"
+                       Variant="Variant.Outlined"
                        Label="@Field.Name" 
                        @bind-Value="Value.OptionId" 
                        Required="@Field.IsRequired" 
@@ -74,7 +76,8 @@
             break;
 
         case FieldDataTypeDto.MultiSelect:
-            <MudSelect T="Guid" 
+            <MudSelect T="Guid"
+                       Variant="Variant.Outlined"
                        Label="@Field.Name" 
                        SelectedValues="SelectedOptions"
                        SelectedValuesChanged="OnOptionsChanged"

@@ -9,24 +9,24 @@
         <MudForm @ref="_form">
             <MudGrid>
                 <MudItem xs="12" md="6">
-                    <MudTextField T="string" Label="Field Name (e.g. Mileage)" @bind-Value="Field.Name" Required="true" />
+                    <MudTextField Variant="Variant.Outlined" T="string" Label="Field Name (e.g. Mileage)" @bind-Value="Field.Name" Required="true" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudSelect T="FieldDataTypeDto" Label="Data Type" @bind-Value="Field.DataTypeDto">
+                    <MudSelect T="FieldDataTypeDto" Variant="Variant.Outlined" Label="Data Type" @bind-Value="Field.DataTypeDto">
                         @foreach (FieldDataTypeDto item in Enum.GetValues(typeof(FieldDataTypeDto)))
                         {
-                            <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
+                            <MudSelectItem Variant="Variant.Outlined" Value="@item">@item.ToString()</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudNumericField T="int" Label="Sort Order" @bind-Value="Field.SortOrder" />
+                    <MudNumericField Variant="Variant.Outlined" T="int" Label="Sort Order" @bind-Value="Field.SortOrder" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField T="string" Label="Unit (e.g. km, kg)" @bind-Value="Field.Unit" />
+                    <MudTextField Variant="Variant.Outlined" T="string" Label="Unit (e.g. km, kg)" @bind-Value="Field.Unit" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField T="string" Label="Placeholder" @bind-Value="Field.Placeholder" />
+                    <MudTextField Variant="Variant.Outlined" T="string" Label="Placeholder" @bind-Value="Field.Placeholder" />
                 </MudItem>
                 
                 <MudItem xs="12">
@@ -47,8 +47,8 @@
                         @foreach (var opt in Field.Options.OrderBy(o => o.SortOrder))
                         {
                             <div class="d-flex align-center gap-2 mb-2">
-                                <MudTextField T="string" @bind-Value="opt.Value" Label="Value" Dense="true" />
-                                <MudNumericField T="int" @bind-Value="opt.SortOrder" Label="Order" Dense="true" Style="width: 80px;" />
+                                <MudTextField Variant="Variant.Outlined" T="string" @bind-Value="opt.Value" Label="Value" Dense="true" />
+                                <MudNumericField Variant="Variant.Outlined" T="int" @bind-Value="opt.SortOrder" Label="Order" Dense="true" Style="width: 80px;" />
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => Field.Options.Remove(opt))" />
                             </div>
                         }

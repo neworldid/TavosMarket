@@ -19,19 +19,19 @@
             <MudForm @ref="_form" @bind-IsValid="@_success">
                 <MudGrid>
                     <MudItem xs="12">
-                        <MudTextField T="string" Label="Email" Value="@_profile.Email" Disabled="true" ReadOnly="true" HelperText="Email cannot be changed" />
+                        <MudTextField Variant="Variant.Outlined" Label="Email" Value="@_profile.Email" Disabled="true" ReadOnly="true" HelperText="Email cannot be changed" />
                     </MudItem>
                     <MudItem xs="12">
-                        <MudTextField T="string" Label="Username" Value="@_profile.UserName" Disabled="true" ReadOnly="true" HelperText="Username cannot be changed" />
+                        <MudTextField Variant="Variant.Outlined" Label="Username" Value="@_profile.UserName" Disabled="true" ReadOnly="true" HelperText="Username cannot be changed" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField T="string" Label="First Name" @bind-Value="_profile.FirstName" />
+                        <MudTextField Variant="Variant.Outlined" Label="First Name" @bind-Value="_profile.FirstName" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudTextField T="string" Label="Last Name" @bind-Value="_profile.LastName" />
+                        <MudTextField Variant="Variant.Outlined" Label="Last Name" @bind-Value="_profile.LastName" />
                     </MudItem>
                     <MudItem xs="12">
-                        <MudTextField T="string" Label="Phone Number" @bind-Value="_profile.PhoneNumber" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
+                        <MudTextField Variant="Variant.Outlined" Label="Phone Number" @bind-Value="_profile.PhoneNumber" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
                     </MudItem>
                     <MudItem xs="12" Class="d-flex justify-end mt-6">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProfile" Disabled="@(!_success || _saving)">

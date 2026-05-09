@@ -31,10 +31,10 @@
             <MudItem xs="12" md="5">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudForm @ref="_form" @bind-IsValid="@_success">
-                        <MudTextField T="string" Label="Name" @bind-Value="_category.Name" Required="true" RequiredError="Name is required"/>
-                        <MudTextField T="string" Label="Description" @bind-Value="_category.Description" Lines="3"/>
+                        <MudTextField Variant="Variant.Outlined" Label="Name" @bind-Value="_category.Name" Required="true" RequiredError="Name is required"/>
+                        <MudTextField Variant="Variant.Outlined" Label="Description" @bind-Value="_category.Description" Lines="3"/>
 
-                        <MudSelect T="Guid?" Label="Parent Category" @bind-Value="_category.ParentId" AnchorOrigin="Origin.BottomCenter" Class="mt-2">
+                        <MudSelect T="Guid?" Variant="Variant.Outlined" Label="Parent Category" @bind-Value="_category.ParentId" AnchorOrigin="Origin.BottomCenter" Class="mt-2">
                             <MudSelectItem T="Guid?" Value="null">None (Root)</MudSelectItem>
                             @foreach (var cat in _allCategories.Where(c => c.Id != _category.Id))
                             {
@@ -42,7 +42,7 @@
                             }
                         </MudSelect>
 
-                        <MudNumericField T="int" Label="Sort Order" @bind-Value="_category.SortOrder" Class="mt-2"/>
+                        <MudNumericField Variant="Variant.Outlined" T="int" Label="Sort Order" @bind-Value="_category.SortOrder" Class="mt-2"/>
                         <MudSwitch T="bool" Label="Active" @bind-Value="_category.IsActive" Color="Color.Primary" Class="mt-2"/>
                     </MudForm>
                 </MudPaper>

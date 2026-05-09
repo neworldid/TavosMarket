@@ -43,7 +43,7 @@
             <MudForm @ref="_form" @bind-IsValid="@_success">
                 <MudGrid>
                     <MudItem xs="12">
-                        <MudSelect T="Guid?" Label="Category" Value="@SelectedCategoryId" ValueChanged="OnCategoryChanged" Required="true" RequiredError="Select a category" Disabled="IsEdit">
+                        <MudSelect Variant = "Variant.Outlined" Label="Category" Value="@SelectedCategoryId" ValueChanged="OnCategoryChanged" Required="true" RequiredError="Select a category" Disabled="IsEdit">
                             <MudSelectItem T="Guid?" Value="null">Select Category</MudSelectItem>
                             @foreach (var cat in _categories)
                             {
@@ -62,23 +62,23 @@
                     @if (_listing.CategoryId != Guid.Empty)
                     {
                         <MudItem xs="12">
-                            <MudTextField T="string" Label="Title" @bind-Value="_listing.Title" Required="true"/>
+                            <MudTextField Variant = "Variant.Outlined" Label="Title" @bind-Value="_listing.Title" Required="true"/>
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudNumericField T="decimal" Label="Price" @bind-Value="_listing.Price" Required="true" AdornmentText="€" Adornment="Adornment.End"/>
+                            <MudNumericField Variant = "Variant.Outlined" Label="Price" @bind-Value="_listing.Price" Required="true" AdornmentText="€" Adornment="Adornment.End"/>
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudCheckBox T="bool" Label="Price Negotiable" @bind-Value="_listing.IsNegotiable" Color="Color.Primary"/>
+                            <MudCheckBox Variant = "Variant.Outlined" Label="Price Negotiable" @bind-Value="_listing.IsNegotiable" Color="Color.Primary"/>
                         </MudItem>
 
                         <MudItem xs="12">
-                            <MudTextField T="string" Label="Description" @bind-Value="_listing.Description" Lines="5" Required="true"/>
+                            <MudTextField Variant = "Variant.Outlined" Label="Description" @bind-Value="_listing.Description" Lines="5" Required="true"/>
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudTextField T="string" Label="City" @bind-Value="_listing.City" Required="true"/>
+                            <MudTextField Variant = "Variant.Outlined" Label="City" @bind-Value="_listing.City" Required="true"/>
                         </MudItem>
 
                         <MudItem xs="12">
