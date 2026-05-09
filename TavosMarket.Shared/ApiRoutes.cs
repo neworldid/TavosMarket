@@ -46,4 +46,9 @@ public static class ApiRoutes
 		public const string User = "/api/stats/user";
 		public const string Admin = "/api/stats/admin";
 	}
+
+	public static class Cities
+	{
+		public const string Base = "/api/cities";
+	}
 }

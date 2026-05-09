@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TavosMarket.Infrastructure.Database;
 
@@ -11,9 +12,11 @@ using TavosMarket.Infrastructure.Database;
 namespace TavosMarket.Infrastructure.Migrations
 {
     [DbContext(typeof(TavosMarketDbContext))]
-    partial class TavosMarketDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509170002_AddCitiesTable")]
+    partial class AddCitiesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -323,165 +326,11 @@ namespace TavosMarket.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)")
-                        .UseCollation("Latvian_CI_AI");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Cities");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("2e280462-484b-f8ce-7bbc-f25eb8212ba8"),
-                            Name = "Rīga"
-                        },
-                        new
-                        {
-                            Id = new Guid("fc09d03f-8232-b04b-272f-132898d00293"),
-                            Name = "Daugavpils"
-                        },
-                        new
-                        {
-                            Id = new Guid("7768bcc2-2d9f-c5d2-642b-462f3be3fd67"),
-                            Name = "Liepāja"
-                        },
-                        new
-                        {
-                            Id = new Guid("98084d45-fc49-72bb-4c79-ea2dcbef75b2"),
-                            Name = "Jelgava"
-                        },
-                        new
-                        {
-                            Id = new Guid("f74e365d-79e1-9d58-f9e8-b3302b3e610e"),
-                            Name = "Jūrmala"
-                        },
-                        new
-                        {
-                            Id = new Guid("e93e168f-8039-1438-c3a6-0fee97dfa487"),
-                            Name = "Ventspils"
-                        },
-                        new
-                        {
-                            Id = new Guid("ffd00aa7-a43e-8b7d-a254-da76fcea0de0"),
-                            Name = "Rēzekne"
-                        },
-                        new
-                        {
-                            Id = new Guid("ddda60e4-7167-734c-9e7a-1a1b3d148f10"),
-                            Name = "Valmiera"
-                        },
-                        new
-                        {
-                            Id = new Guid("71b71022-8bf2-851c-4b45-f5efa3072bdf"),
-                            Name = "Jēkabpils"
-                        },
-                        new
-                        {
-                            Id = new Guid("9434f1c1-237b-9a36-49b3-f496183d30cf"),
-                            Name = "Ogre"
-                        },
-                        new
-                        {
-                            Id = new Guid("545c81ac-aed1-88ae-de43-b84855a60f53"),
-                            Name = "Salaspils"
-                        },
-                        new
-                        {
-                            Id = new Guid("330bf69e-d9e2-9ae1-bbdd-1f630d0b2e09"),
-                            Name = "Mārupe"
-                        },
-                        new
-                        {
-                            Id = new Guid("f8dff3b2-ec7d-5138-1bcb-0fa162b88eaf"),
-                            Name = "Tukums"
-                        },
-                        new
-                        {
-                            Id = new Guid("ade87faf-7a7f-77ab-75a4-5ca8b7ecde59"),
-                            Name = "Cēsis"
-                        },
-                        new
-                        {
-                            Id = new Guid("d9220cca-5393-b20e-0897-f5a0c8d3b51b"),
-                            Name = "Sigulda"
-                        },
-                        new
-                        {
-                            Id = new Guid("ceb7ab7a-08fa-9287-6483-a4b9514f9fdb"),
-                            Name = "Olaine"
-                        },
-                        new
-                        {
-                            Id = new Guid("3bfc07a8-b77c-14d4-ce00-e3c29512d9ef"),
-                            Name = "Kuldīga"
-                        },
-                        new
-                        {
-                            Id = new Guid("189a7500-008c-31cb-b62d-e65d35719fa0"),
-                            Name = "Bauska"
-                        },
-                        new
-                        {
-                            Id = new Guid("45ee5075-c963-94d0-56f2-4cf414e4cf3e"),
-                            Name = "Salacgrīva"
-                        },
-                        new
-                        {
-                            Id = new Guid("c4cb8d95-f193-5f55-1a24-ddb63d60478d"),
-                            Name = "Limbaži"
-                        },
-                        new
-                        {
-                            Id = new Guid("482e19ab-683f-04b2-ab93-60f106543dbe"),
-                            Name = "Talsi"
-                        },
-                        new
-                        {
-                            Id = new Guid("8410769d-da09-4f75-5029-f6a81b9092f0"),
-                            Name = "Dobele"
-                        },
-                        new
-                        {
-                            Id = new Guid("5a66713a-c22b-b2af-9227-2ac1d6a5813d"),
-                            Name = "Ludza"
-                        },
-                        new
-                        {
-                            Id = new Guid("501bd21e-28ec-2048-6626-bdd0006f5b62"),
-                            Name = "Madona"
-                        },
-                        new
-                        {
-                            Id = new Guid("4b5d94df-1a73-daac-f022-4e33aeff0851"),
-                            Name = "Gulbene"
-                        },
-                        new
-                        {
-                            Id = new Guid("e64f329d-0c67-66a5-bded-606b3c46e9cf"),
-                            Name = "Alūksne"
-                        },
-                        new
-                        {
-                            Id = new Guid("61365094-9744-94a9-3f3a-92930ecbaead"),
-                            Name = "Krāslava"
-                        },
-                        new
-                        {
-                            Id = new Guid("a98e40cd-74cb-df29-9ae4-373da8201309"),
-                            Name = "Aizkraukle"
-                        },
-                        new
-                        {
-                            Id = new Guid("01b4b15d-dc76-c115-de5d-18b3ceb9a55e"),
-                            Name = "Preiļi"
-                        },
-                        new
-                        {
-                            Id = new Guid("b24fa16a-a569-db49-7b2f-a685db019d7c"),
-                            Name = "Balvi"
-                        });
                 });
 
             modelBuilder.Entity("TavosMarket.Domain.Entities.Listing", b =>

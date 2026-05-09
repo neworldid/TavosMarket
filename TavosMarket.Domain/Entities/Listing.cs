@@ -27,7 +27,8 @@ public class Listing : AuditableEntityBase
 
 	public ListingStatus Status { get; set; } = ListingStatus.Draft;
 
-	public string? City { get; set; }
+	public Guid? CityId { get; set; }
+	public City? City { get; set; }
 
 	public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
 	public ICollection<ListingFieldValue> FieldValues { get; set; } = new List<ListingFieldValue>();

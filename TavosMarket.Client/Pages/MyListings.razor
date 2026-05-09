@@ -56,7 +56,7 @@
                             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@listing.Category?.Name</MudText>
                             <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
                                 <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">@(string.IsNullOrEmpty(listing.City) ? "City not specified" : listing.City)</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@(listing.City == null ? "City not specified" : listing.City.Name)</MudText>
                             </MudStack>
                         </MudCardContent>
                         <MudCardActions>

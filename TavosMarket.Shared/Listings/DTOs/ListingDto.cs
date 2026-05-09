@@ -1,4 +1,5 @@
 ﻿using TavosMarket.Shared.Categories.DTOs;
+using TavosMarket.Shared.Cities.DTOs;
 
 namespace TavosMarket.Shared.Listings.DTOs;
 
@@ -21,7 +22,8 @@ public class ListingDto
     public string Description { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public bool IsNegotiable { get; set; }
-    public string? City { get; set; }
+    public Guid? CityId { get; set; }
+    public CityDto? City { get; set; }
     public ListingStatusDto Status { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     

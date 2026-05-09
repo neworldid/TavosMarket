@@ -5,6 +5,7 @@ using TavosMarket.Application.Auth;
 using TavosMarket.Domain.Entities;
 using TavosMarket.Domain.Enums;
 using TavosMarket.Shared.Listings.DTOs;
+using TavosMarket.Shared.Cities.DTOs;
 using TavosMarket.Shared.Categories.DTOs;
 using TavosMarket.Shared.Enums;
 
@@ -20,6 +21,7 @@ public class ListingService(
     {
         var query = dbContext.Listings
             .Include(l => l.Category)
+            .Include(l => l.City)
             .Include(l => l.Images)
             .AsQueryable();
 
@@ -96,6 +98,7 @@ public class ListingService(
 
         var listings = await dbContext.Listings
             .Include(l => l.Category)
+            .Include(l => l.City)
             .Include(l => l.Images)
             .Where(l => l.SellerId == userId.Value)
             .OrderByDescending(l => l.CreatedAtUtc)
@@ -109,6 +112,7 @@ public class ListingService(
     {
         var listing = await dbContext.Listings
             .Include(l => l.Category)
+            .Include(l => l.City)
             .Include(l => l.Images)
             .Include(l => l.FieldValues)
                 .ThenInclude(fv => fv.FieldDefinition)
@@ -140,7 +144,7 @@ public class ListingService(
             Description = dto.Description,
             Price = dto.Price,
             IsNegotiable = dto.IsNegotiable,
-            City = dto.City,
+            CityId = dto.CityId,
             Status = ListingStatus.Published // Defaulting to published for now
         };
 
@@ -234,7 +238,7 @@ public class ListingService(
         listing.Description = dto.Description;
         listing.Price = dto.Price;
         listing.IsNegotiable = dto.IsNegotiable;
-        listing.City = dto.City;
+        listing.CityId = dto.CityId;
 
         // Update Images
         dbContext.ListingImages.RemoveRange(listing.Images);
@@ -342,7 +346,8 @@ public class ListingService(
             Description = listing.Description,
             Price = listing.Price,
             IsNegotiable = listing.IsNegotiable,
-            City = listing.City,
+            CityId = listing.CityId,
+            City = listing.City != null ? new CityDto { Id = listing.City.Id, Name = listing.City.Name } : null,
             Status = (ListingStatusDto)listing.Status,
             CreatedAtUtc = listing.CreatedAtUtc,
             Category = categoryDto,

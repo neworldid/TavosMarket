@@ -7,6 +7,7 @@ public interface ITavosMarketDbContext
 {
 	public DbSet<Listing> Listings { get; }
 	public DbSet<Category> Categories { get; }
+	public DbSet<City> Cities { get; }
 	public DbSet<CategoryFieldDefinition> CategoryFieldDefinitions { get; }
 	public DbSet<CategoryFieldOption> CategoryFieldOptions { get; }
 	public DbSet<ListingFieldValue> ListingFieldValues { get; }

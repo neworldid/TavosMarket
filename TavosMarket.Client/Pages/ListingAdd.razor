@@ -1,6 +1,7 @@
 @page "/listings/add"
 @page "/listings/edit/{Id:guid}"
 @using TavosMarket.Shared.Listings.DTOs
+@using TavosMarket.Shared.Cities.DTOs
 @using TavosMarket.Shared.Categories.DTOs
 @using TavosMarket.Shared
 @using TavosMarket.Client.Components
@@ -71,7 +72,10 @@
                         </MudItem>
 
                         <MudItem xs="12" md="6">
-                            <MudTextField Variant = "Variant.Outlined" Label="City" @bind-Value="_listing.City" Required="true"/>
+                            <MudAutocomplete T="CityDto" Label="City" @bind-Value="SelectedCity"
+                                             SearchFunc="@SearchCities" ToStringFunc="@(c => c?.Name ?? "")"
+                                             Variant="Variant.Outlined" Required="true" RequiredError="City is required"
+                                             Placeholder="Start typing city name..."/>
                         </MudItem>
 
                         <MudItem xs="12">
@@ -219,6 +223,32 @@
 
         _listing.CategoryId = categoryId.Value;
         await LoadCategoryFields(categoryId.Value);
+    }
+
+    private CityDto? SelectedCity
+    {
+        get => _listing.City;
+        set
+        {
+            _listing.City = value;
+            _listing.CityId = value?.Id;
+        }
+    }
+
+    private async Task<IEnumerable<CityDto>> SearchCities(string value, CancellationToken ct)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var url = $"{ApiRoutes.Cities.Base}?search={Uri.EscapeDataString(value)}";
+            var cities = await client.GetFromJsonAsync<List<CityDto>>(url, ct);
+            return cities ?? [];
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error searching cities: " + ex.Message, Severity.Error);
+            return new List<CityDto>();
+        }
     }
 
     private async Task LoadCategoryFields(Guid categoryId)

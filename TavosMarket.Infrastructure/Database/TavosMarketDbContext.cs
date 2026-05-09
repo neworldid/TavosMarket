@@ -12,6 +12,7 @@ public class TavosMarketDbContext(DbContextOptions<TavosMarketDbContext> options
 {
 	public DbSet<Listing> Listings { get; set; }
 	public DbSet<Category> Categories { get; set; }
+	public DbSet<City> Cities { get; set; }
 	public DbSet<CategoryFieldDefinition> CategoryFieldDefinitions { get; set; }
 	public DbSet<CategoryFieldOption> CategoryFieldOptions { get; set; }
 	public DbSet<ListingFieldValue> ListingFieldValues { get; set; }
@@ -29,6 +30,39 @@ public class TavosMarketDbContext(DbContextOptions<TavosMarketDbContext> options
 				"ListingFieldValueSelectedOption",
 				j => j.HasOne<CategoryFieldOption>().WithMany().OnDelete(DeleteBehavior.NoAction),
 				j => j.HasOne<ListingFieldValue>().WithMany().OnDelete(DeleteBehavior.NoAction));
+
+		SeedCities(modelBuilder);
+		modelBuilder.Entity<City>(entity =>
+		{
+			entity.Property(x => x.Name)
+				.HasMaxLength(128)
+				.UseCollation("Latvian_CI_AI");
+		});
+	}
+
+	private void SeedCities(ModelBuilder modelBuilder)
+	{
+		var cities = new[]
+		{
+			"Rīga", "Daugavpils", "Liepāja", "Jelgava", "Jūrmala", "Ventspils", "Rēzekne", "Valmiera", "Jēkabpils", "Ogre",
+			"Salaspils", "Mārupe", "Tukums", "Cēsis", "Sigulda", "Olaine", "Kuldīga", "Bauska", "Salacgrīva", "Limbaži",
+			"Talsi", "Dobele", "Ludza", "Madona", "Gulbene", "Alūksne", "Krāslava", "Aizkraukle", "Preiļi", "Balvi"
+		};
+
+		var cityEntities = cities.Select(name => new City
+		{
+			Id = Guid.Parse(GenerateGuidFromName(name)),
+			Name = name
+		}).ToArray();
+
+		modelBuilder.Entity<City>().HasData(cityEntities);
+	}
+
+	private string GenerateGuidFromName(string name)
+	{
+		using var md5 = System.Security.Cryptography.MD5.Create();
+		byte[] hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(name));
+		return new Guid(hash).ToString();
 	}
 	
 	public override int SaveChanges()
