@@ -1,21 +1,122 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Authorization
+@using TavosMarket.Shared.Stats.DTOs
+@using TavosMarket.Shared
 @inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
 
-<MudContainer Class="mt-10">
-    <MudCard>
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h5">Dashboard</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-10">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Welcome to TavosMarket</MudText>
+    <MudText Typo="Typo.h6" Align="Align.Center" Class="mb-10">The best place to buy and sell anything!</MudText>
 
-        <MudCardContent>
+    <MudGrid>
+        @if (_isLoading)
+        {
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </MudItem>
+        }
+        else
+        {
+            <AuthorizeView>
+                <Authorized>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%">
+                            <MudStack AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Filled.ListAlt" Size="Size.Large" Color="Color.Primary" />
+                                <MudText Typo="Typo.h5">My Listings</MudText>
+                                <MudText Typo="Typo.h3">@_userStats.MyListingsCount</MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/listings/my"))">View My Listings</MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%">
+                            <MudStack AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
+                                <MudText Typo="Typo.h5">Active Ads</MudText>
+                                <MudText Typo="Typo.h3">@_userStats.MyActiveListingsCount</MudText>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="@(() => NavigationManager.NavigateTo("/listings"))">Post New Ad</MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                </Authorized>
+                <NotAuthorized>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%">
+                            <MudStack AlignItems="AlignItems.Center">
+                                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Large" Color="Color.Primary" />
+                                <MudText Typo="Typo.h5">Join Us Today!</MudText>
+                                <MudText Typo="Typo.body1" Align="Align.Center">Create an account to start selling your items and manage your listings easily.</MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/register"))" Class="mt-2">Register Now</MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                </NotAuthorized>
+            </AuthorizeView>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-4" Style="height: 100%">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Large" Color="Color.Info" />
+                        <MudText Typo="Typo.h5">Total Listings</MudText>
+                        <MudText Typo="Typo.h3">@_publicStats.TotalListings</MudText>
+                        <MudButton Variant="Variant.Text" Color="Color.Info" OnClick="@(() => NavigationManager.NavigateTo("/listings"))">Browse All</MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-4" Style="height: 100%">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Category" Size="Size.Large" Color="Color.Warning" />
+                        <MudText Typo="Typo.h5">Categories</MudText>
+                        <MudText Typo="Typo.h3">@_publicStats.TotalCategories</MudText>
+                        <MudText Typo="Typo.body2">Find exactly what you need</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
             
-        </MudCardContent>
-    </MudCard>
+            <MudItem xs="12" sm="6" md="4">
+                 <MudPaper Elevation="2" Class="pa-4 d-flex flex-column align-center justify-center" Style="height: 100%">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Secondary" />
+                    <MudText Typo="Typo.h5">Growing Community</MudText>
+                    <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-2">Thousands of people use TavosMarket every day to find great deals.</MudText>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
 </MudContainer>
 
 @code {
-    
+    private PublicStatisticsDto _publicStats = new();
+    private UserStatisticsDto _userStats = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            
+            var publicStatsTask = client.GetFromJsonAsync<PublicStatisticsDto>(ApiRoutes.Stats.Public);
+            
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                var userStatsTask = client.GetFromJsonAsync<UserStatisticsDto>(ApiRoutes.Stats.User);
+                _userStats = await userStatsTask ?? new UserStatisticsDto();
+            }
+
+            _publicStats = await publicStatsTask ?? new PublicStatisticsDto();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
 }

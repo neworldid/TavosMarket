@@ -51,6 +51,11 @@ public class UserService(
         return MapToProfileDto(user);
     }
 
+    public async Task<int> GetTotalUsersCountAsync(CancellationToken ct = default)
+    {
+        return await userManager.Users.CountAsync(ct);
+    }
+
     private static UserProfileDto MapToProfileDto(ApplicationUser user)
     {
         return new UserProfileDto(

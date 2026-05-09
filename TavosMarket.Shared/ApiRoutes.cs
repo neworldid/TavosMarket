@@ -38,4 +38,11 @@ public static class ApiRoutes
 		public const string Delete = "/api/listings/{id}";
 		public const string MyListings = "/api/listings/my";
 	}
+
+	public static class Stats
+	{
+		public const string Public = "/api/stats/public";
+		public const string User = "/api/stats/user";
+		public const string Admin = "/api/stats/admin";
+	}
 }

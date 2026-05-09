@@ -178,6 +178,14 @@
 
             if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
                 await tokenProvider.SetTokenAsync(authResponse.AccessToken);
+            
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+            if (authState.User.Identity?.IsAuthenticated == true && authState.User.IsInRole("Admin"))
+            {
+                Navigation.NavigateTo("/admin/dashboard");
+                return;
+            }
 
             Navigation.NavigateTo("/");
         }

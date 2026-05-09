@@ -1,22 +1,107 @@
 ﻿@page "/admin/dashboard"
 @using Microsoft.AspNetCore.Authorization
+@using TavosMarket.Shared.Stats.DTOs
+@using TavosMarket.Shared
 @inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
 @attribute [Authorize(Roles = "Admin")]
 
-<MudContainer Class="mt-10">
-    <MudCard>
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h5">Dashboard Admin</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-10">
+    <MudText Typo="Typo.h4" GutterBottom="true">Admin Dashboard</MudText>
 
-        <MudCardContent>
-            
-        </MudCardContent>
-    </MudCard>
+    <MudGrid>
+        @if (_isLoading)
+        {
+            <MudItem xs="12" Class="d-flex justify-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6">Total Users</MudText>
+                        <MudText Typo="Typo.h4">@_adminStats.TotalUsers</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.List" Size="Size.Large" Color="Color.Info" />
+                        <MudText Typo="Typo.h6">Total Listings</MudText>
+                        <MudText Typo="Typo.h4">@_adminStats.TotalListings</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Gavel" Size="Size.Large" Color="Color.Warning" />
+                        <MudText Typo="Typo.h6">Pending Moderation</MudText>
+                        <MudText Typo="Typo.h4">@_adminStats.PendingModerationListings</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Category" Size="Size.Large" Color="Color.Success" />
+                        <MudText Typo="Typo.h6">Categories</MudText>
+                        <MudText Typo="Typo.h4">@_adminStats.TotalCategories</MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Quick Actions</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12" sm="4">
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="Color.Primary" 
+                                           FullWidth="true" 
+                                           StartIcon="@Icons.Material.Filled.Category"
+                                           OnClick="@(() => NavigationManager.NavigateTo("/admin/categories"))">
+                                    Manage Categories
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
 </MudContainer>
 
 @code {
-    
+    private AdminStatisticsDto _adminStats = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            _adminStats = await client.GetFromJsonAsync<AdminStatisticsDto>(ApiRoutes.Stats.Admin) ?? new AdminStatisticsDto();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading admin stats: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
 }

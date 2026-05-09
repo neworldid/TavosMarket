@@ -60,6 +60,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<ListingService>();
+builder.Services.AddScoped<StatsService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddCors(options =>
