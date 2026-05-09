@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace TavosMarket.Domain.Entities;
 
@@ -7,7 +6,6 @@ public enum ListingStatus
 {
 	Draft = 1,
 	Published = 2,
-	Moderation = 3,
 	Rejected = 4,
 	Archived = 5,
 	Sold = 6

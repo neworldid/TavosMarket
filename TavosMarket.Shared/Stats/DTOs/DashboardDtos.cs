@@ -16,6 +16,5 @@ public class AdminStatisticsDto
 {
     public int TotalUsers { get; set; }
     public int TotalListings { get; set; }
-    public int PendingModerationListings { get; set; }
     public int TotalCategories { get; set; }
 }

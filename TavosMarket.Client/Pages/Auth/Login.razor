@@ -10,7 +10,6 @@
 @inject ISnackbar Snackbar;
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JsRuntime
-@inject IConfiguration Configuration
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-10">
     <MudCard>
@@ -46,8 +45,9 @@
                         Login
                     </MudButton>
 
-                    <div id="googleBtn" class="mt-4"></div>
-
+                    <GoogleLoginDisplay IsBusy="_isBusy"
+                                        IsBusyChanged="@(value => _isBusy = value)" />
+                    
                     <MudText Typo="Typo.body2" Align="Align.Center">
                         Don't have an account?
                         <MudLink Href="/register" Underline="Underline.Hover">
@@ -80,57 +80,6 @@
         _model.RememberPassword = true;
         _model.Email = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", RememberedEmailKey) ?? string.Empty;
         _model.Password = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", RememberedPasswordKey) ?? string.Empty;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _objRef = DotNetObjectReference.Create(this);
-            await JsRuntime.InvokeVoidAsync("initializeGoogleSignIn", _objRef, Configuration["Google:ClientId"]);
-        }
-    }
-
-    [JSInvokable]
-    public async Task HandleGoogleSignIn(string token)
-    {
-        try
-        {
-            _isBusy = true;
-            StateHasChanged();
-
-            var request = new GoogleLoginRequest(token);
-            var api = HttpClientFactory.CreateClient("Api");
-            var response = await api.PostAsJsonAsync(ApiRoutes.Auth.GoogleLogin, request);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-                Snackbar.Add(errorResponse?.Error ?? "Google login failed.", Severity.Error);
-                return;
-            }
-
-            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-            if (authResponse is null)
-            {
-                Snackbar.Add("Login response is empty.", Severity.Error);
-                return;
-            }
-
-            if (AuthenticationStateProvider is TokenAuthenticationStateProvider tokenProvider)
-                await tokenProvider.SetTokenAsync(authResponse.AccessToken);
-
-            Navigation.NavigateTo("/");
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            _isBusy = false;
-            StateHasChanged();
-        }
     }
 
     private async Task HandleLogin()

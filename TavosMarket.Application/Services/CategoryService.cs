@@ -65,7 +65,7 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		return result;
 	}
 
-	private void FillFullNames(Category category, List<Category> all, string parentPath, Dictionary<Guid, string> result)
+	private static void FillFullNames(Category category, List<Category> all, string parentPath, Dictionary<Guid, string> result)
 	{
 		var currentPath = string.IsNullOrEmpty(parentPath) ? category.Name : $"{parentPath} > {category.Name}";
 		result[category.Id] = currentPath;
@@ -96,6 +96,19 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		}
 
 		dbContext.Categories.Add(category);
+		await dbContext.SaveChangesAsync(cancellationToken);
+		
+		var siblings = await dbContext.Categories
+			.Where(c => c.ParentId == category.ParentId)
+			.OrderBy(c => c.SortOrder)
+			.ThenBy(c => c.Name)
+			.ToListAsync(cancellationToken);
+
+		// Normalize orders to ensure consistent behavior
+		for (var i = 0; i < siblings.Count; i++)
+		{
+			siblings[i].SortOrder = i + 1;
+		}
 		await dbContext.SaveChangesAsync(cancellationToken);
 
 		return MapToDto(category, null);
@@ -193,7 +206,7 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 
 	public async Task ReorderAsync(Guid categoryId, bool moveUp, CancellationToken cancellationToken = default)
 	{
-		var category = await dbContext.Categories.FindAsync(new object[] { categoryId }, cancellationToken);
+		var category = await dbContext.Categories.FindAsync([categoryId], cancellationToken);
 		if (category == null) return;
 
 		var siblings = await dbContext.Categories
@@ -254,9 +267,15 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 		}
 	}
 
-	private static CategoryDto MapToDto(Category category, List<Category>? allCategories, string parentFullName = "")
+	private CategoryDto MapToDto(Category category, List<Category>? allCategories, string parentFullName = "")
 	{
 		var fullName = string.IsNullOrEmpty(parentFullName) ? category.Name : $"{parentFullName} > {category.Name}";
+		var siblings = dbContext.Categories
+			.Where(c => c.ParentId == category.ParentId)
+			.OrderBy(c => c.SortOrder)
+			.ThenBy(c => c.Name)
+			.ToList();
+		
 		var dto = new CategoryDto
 		{
 			Id = category.Id,
@@ -268,6 +287,8 @@ public class CategoryService(ITavosMarketDbContext dbContext)
 			SortOrder = category.SortOrder,
 			IsActive = category.IsActive,
 			IsDirectUseForListings = category.IsDirectUseForListings,
+			ImpossibleToReorderUp = siblings.Count == 1 || siblings.Min(x => x.SortOrder) == category.SortOrder,
+			ImpossibleToReorderDown = siblings.Count == 1 || siblings.Max(x => x.SortOrder) == category.SortOrder,
 			FieldDefinitions = category.FieldDefinitions
 				.OrderBy(fd => fd.SortOrder)
 				.Select(fd => new CategoryFieldDefinitionDto

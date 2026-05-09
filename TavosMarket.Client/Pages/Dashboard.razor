@@ -26,7 +26,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.ListAlt" Size="Size.Large" Color="Color.Primary" />
                                 <MudText Typo="Typo.h5">My Listings</MudText>
                                 <MudText Typo="Typo.h3">@_userStats.MyListingsCount</MudText>
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/listings/my"))">View My Listings</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/my-listings"))">View My Listings</MudButton>
                             </MudStack>
                         </MudPaper>
                     </MudItem>
@@ -34,9 +34,9 @@
                         <MudPaper Elevation="2" Class="pa-4" Style="height: 100%">
                             <MudStack AlignItems="AlignItems.Center">
                                 <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
-                                <MudText Typo="Typo.h5">Active Ads</MudText>
+                                <MudText Typo="Typo.h5">Active Listings</MudText>
                                 <MudText Typo="Typo.h3">@_userStats.MyActiveListingsCount</MudText>
-                                <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="@(() => NavigationManager.NavigateTo("/listings"))">Post New Ad</MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="@(() => NavigationManager.NavigateTo("/listings"))">Post New Listing</MudButton>
                             </MudStack>
                         </MudPaper>
                     </MudItem>

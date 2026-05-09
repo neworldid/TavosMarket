@@ -55,6 +55,9 @@
                         Register
                     </MudButton>
                     
+                    <GoogleLoginDisplay IsBusy="_isBusy"
+                                        IsBusyChanged="@(value => _isBusy = value)" />
+                    
                     <MudText Typo="Typo.body2" Align="Align.Center">
                         Already have an account?
                         <MudLink Href="/login" Underline="Underline.Hover">

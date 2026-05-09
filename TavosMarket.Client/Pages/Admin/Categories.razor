@@ -33,11 +33,17 @@
                 <MudCheckBox Value="@context.IsDirectUseForListings" ReadOnly="true" Color="Color.Info" />
             </MudTd>
             <MudTd DataLabel="Actions">
-                <div class="d-flex">
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" OnClick="@(() => ReorderCategory(context.Id, true))" Title="Move Up" />
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" OnClick="@(() => ReorderCategory(context.Id, false))" Title="Move Down" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => EditCategory(context.Id))" Title="Edit" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteCategory(context))" Title="Delete" />
+                <div class="d-flex justify-end" style="width: 100%;">
+                    @if (!context.ImpossibleToReorderUp)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" OnClick="@(() => ReorderCategory(context.Id, true))" Title="Move Up"/>
+                    }
+                    @if (!context.ImpossibleToReorderDown)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" OnClick="@(() => ReorderCategory(context.Id, false))" Title="Move Down"/>
+                    }
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => EditCategory(context.Id))" Title="Edit"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteCategory(context))" Title="Delete"/>
                 </div>
             </MudTd>
         </RowTemplate>
@@ -92,7 +98,9 @@
                 IsActive = cat.IsActive,
                 ParentId = cat.ParentId,
                 ParentName = cat.ParentName,
-                IsDirectUseForListings = cat.IsDirectUseForListings
+                IsDirectUseForListings = cat.IsDirectUseForListings,
+                ImpossibleToReorderUp = cat.ImpossibleToReorderUp,
+                ImpossibleToReorderDown = cat.ImpossibleToReorderDown
             };
             result.Add(flatCat);
             if (cat.Children.Any())

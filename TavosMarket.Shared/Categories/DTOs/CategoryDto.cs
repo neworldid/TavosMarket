@@ -11,6 +11,8 @@ public class CategoryDto
 	public int SortOrder { get; set; }
 	public bool IsActive { get; set; }
 	public bool IsDirectUseForListings { get; set; }
+	public bool ImpossibleToReorderUp { get; set; }
+	public bool ImpossibleToReorderDown { get; set; }
 	public List<CategoryFieldDefinitionDto> FieldDefinitions { get; set; } = new();
 	public List<CategoryDto> Children { get; set; } = new();
 }

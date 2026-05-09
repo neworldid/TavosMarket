@@ -37,7 +37,6 @@ public class StatsService(
         return new AdminStatisticsDto
         {
             TotalListings = await dbContext.Listings.CountAsync(ct),
-            PendingModerationListings = await dbContext.Listings.CountAsync(l => l.Status == ListingStatus.Moderation, ct),
             TotalCategories = await dbContext.Categories.CountAsync(ct),
             TotalUsers = await userService.GetTotalUsersCountAsync(ct)
         };

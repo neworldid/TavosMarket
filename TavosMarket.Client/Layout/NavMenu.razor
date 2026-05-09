@@ -8,6 +8,9 @@
         </NotAuthorized>
     </AuthorizeView>
     <MudNavLink Href="/listings" Match="NavLinkMatch.Prefix" Class="nav-link-item">Listings</MudNavLink>
+    <AuthorizeView Roles="User">
+        <MudNavLink Href="/my-listings" Match="NavLinkMatch.Prefix" Class="nav-link-item">My Listings</MudNavLink>
+    </AuthorizeView>
     <AuthorizeView Roles="Admin">
         <MudNavLink Href="/admin/categories" Match="NavLinkMatch.Prefix" Class="nav-link-item">Categories</MudNavLink>
     </AuthorizeView>
@@ -23,9 +26,11 @@
         padding: 8px 16px !important;
         transition: all 0.2s;
         text-decoration: none !important;
+        white-space: nowrap;
     }
     .nav-link-item .mud-nav-link-text {
         margin-inline-start: 0 !important;
+        white-space: nowrap;
     }
     .nav-link-item .mud-nav-link.active {
         background-color: rgba(255, 255, 255, 0.2) !important;
