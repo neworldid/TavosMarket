@@ -43,7 +43,7 @@
             <MudForm @ref="_form" @bind-IsValid="@_success">
                 <MudGrid>
                     <MudItem xs="12">
-                        <MudSelect Variant = "Variant.Outlined" Label="Category" Value="@SelectedCategoryId" ValueChanged="OnCategoryChanged" Required="true" RequiredError="Select a category" Disabled="IsEdit">
+                        <MudSelect T="Guid?" Variant="Variant.Outlined" Label="Category" Value="@SelectedCategoryId" ValueChanged="OnCategoryChanged" Required="true" RequiredError="Select a category" Disabled="IsEdit">
                             <MudSelectItem T="Guid?" Value="null">Select Category</MudSelectItem>
                             @foreach (var cat in _categories)
                             {

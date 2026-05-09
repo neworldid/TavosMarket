@@ -53,7 +53,7 @@
                             }
                             else
                             {
-                                <MudTextField T="string" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true" Placeholder="@field.Placeholder" />
+                                <MudTextField T="string" Variant="Variant.Outlined" Label="@field.Name" Value="@GetFieldValue(field.Id)" ValueChanged="@(v => SetFieldValue(field.Id, v))" Clearable="true" Placeholder="@field.Placeholder" />
                             }
                         </div>
                     }

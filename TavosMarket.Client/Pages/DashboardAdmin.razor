@@ -1,0 +1,22 @@
+﻿@page "/admin/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@inject IHttpClientFactory HttpClientFactory
+@attribute [Authorize(Roles = "Admin")]
+
+<MudContainer Class="mt-10">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">Dashboard Admin</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
+            
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    
+}

@@ -9,24 +9,24 @@
         <MudForm @ref="_form">
             <MudGrid>
                 <MudItem xs="12" md="6">
-                    <MudTextField Variant="Variant.Outlined" T="string" Label="Field Name (e.g. Mileage)" @bind-Value="Field.Name" Required="true" />
+                    <MudTextField Variant="Variant.Outlined" Label="Field Name (e.g. Mileage)" @bind-Value="Field.Name" Required="true" />
                 </MudItem>
                 <MudItem xs="12" md="6">
                     <MudSelect T="FieldDataTypeDto" Variant="Variant.Outlined" Label="Data Type" @bind-Value="Field.DataTypeDto">
                         @foreach (FieldDataTypeDto item in Enum.GetValues(typeof(FieldDataTypeDto)))
                         {
-                            <MudSelectItem Variant="Variant.Outlined" Value="@item">@item.ToString()</MudSelectItem>
+                            <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudNumericField Variant="Variant.Outlined" T="int" Label="Sort Order" @bind-Value="Field.SortOrder" />
+                    <MudNumericField Variant="Variant.Outlined" Label="Sort Order" @bind-Value="Field.SortOrder" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField Variant="Variant.Outlined" T="string" Label="Unit (e.g. km, kg)" @bind-Value="Field.Unit" />
+                    <MudTextField Variant="Variant.Outlined" Label="Unit (e.g. km, kg)" @bind-Value="Field.Unit" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField Variant="Variant.Outlined" T="string" Label="Placeholder" @bind-Value="Field.Placeholder" />
+                    <MudTextField Variant="Variant.Outlined" Label="Placeholder" @bind-Value="Field.Placeholder" />
                 </MudItem>
                 
                 <MudItem xs="12">
