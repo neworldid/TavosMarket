@@ -15,6 +15,12 @@
         </MudButton>
     </MudStack>
 
+    <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-6">
+        <MudTabPanel Text="Active" OnClick="@(() => SetStatus(ListingStatusDto.Published))" />
+        <MudTabPanel Text="Drafts" OnClick="@(() => SetStatus(ListingStatusDto.Draft))" />
+        <MudTabPanel Text="Expired" OnClick="@(() => SetStatus(ListingStatusDto.Expired))" />
+    </MudTabs>
+
     <MudGrid>
         @if (_loading)
         {
@@ -31,17 +37,17 @@
                 </MudItem>
             }
         }
-        else if (!_listings.Any())
+        else if (!_filteredListings.Any())
         {
             <MudItem xs="12">
                 <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4">
-                    You haven't posted any listings yet.
+                    No listings found in this category.
                 </MudAlert>
             </MudItem>
         }
         else
         {
-            @foreach (var listing in _listings)
+            @foreach (var listing in _filteredListings)
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
                     <MudCard Elevation="2" Class="h-100 hover-card">
@@ -50,10 +56,28 @@
                             <div style="position: absolute; bottom: 8px; left: 8px;">
                                 <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">@listing.Price.ToString("N0") €</MudChip>
                             </div>
+                            @if (listing.Status == ListingStatusDto.Expired)
+                            {
+                                <div style="position: absolute; top: 8px; right: 8px;">
+                                    <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Expired</MudChip>
+                                </div>
+                            }
+                            else if (listing.Status == ListingStatusDto.Draft)
+                            {
+                                <div style="position: absolute; top: 8px; right: 8px;">
+                                    <MudChip T="string" Color="Color.Default" Size="Size.Small" Variant="Variant.Filled">Draft</MudChip>
+                                </div>
+                            }
                         </div>
                         <MudCardContent @onclick="@(() => NavigateToDetails(listing.Id))">
                             <MudText Typo="Typo.subtitle1" Class="text-truncate"><b>@listing.Title</b></MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@listing.Category?.Name</MudText>
+                            @if (listing.ExpiresAt.HasValue)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mb-1">
+                                    @(listing.Status == ListingStatusDto.Expired ? "Expired on" : "Expires on"): @listing.ExpiresAt.Value.ToLocalTime().ToString("g")
+                                </MudText>
+                            }
                             <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
                                 <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@(listing.City == null ? "City not specified" : listing.City.Name)</MudText>
@@ -74,6 +98,7 @@
 <style>
     .hover-card {
         transition: transform 0.2s;
+        cursor: pointer;
     }
     .hover-card:hover {
         transform: translateY(-4px);
@@ -87,11 +112,19 @@
 
 @code {
     private List<ListingDto> _listings = new();
+    private List<ListingDto> _filteredListings = new();
     private bool _loading = true;
+    private ListingStatusDto _currentStatus = ListingStatusDto.Published;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadMyListings();
+    }
+
+    private void SetStatus(ListingStatusDto status)
+    {
+        _currentStatus = status;
+        _filteredListings = _listings.Where(l => l.Status == _currentStatus).ToList();
     }
     
     private string GetListingImageUrl(ListingDto listing)
@@ -114,6 +147,7 @@
         {
             var client = HttpClientFactory.CreateClient("Api");
             _listings = await client.GetFromJsonAsync<List<ListingDto>>(ApiRoutes.Listings.MyListings) ?? new();
+            SetStatus(_currentStatus);
         }
         catch (Exception ex)
         {

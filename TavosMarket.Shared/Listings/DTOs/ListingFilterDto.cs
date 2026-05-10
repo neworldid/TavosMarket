@@ -6,4 +6,5 @@ public class ListingFilterDto
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
     public Dictionary<Guid, string>? FieldFilters { get; set; }
+    public ListingStatusDto? Status { get; set; }
 }

@@ -8,7 +8,8 @@ public enum ListingStatus
 	Published = 2,
 	Rejected = 4,
 	Archived = 5,
-	Sold = 6
+	Sold = 6,
+	Expired = 7
 }
 
 public class Listing : AuditableEntityBase
@@ -26,6 +27,7 @@ public class Listing : AuditableEntityBase
 	public bool IsNegotiable { get; set; }
 
 	public ListingStatus Status { get; set; } = ListingStatus.Draft;
+	public DateTime? ExpiresAt { get; set; }
 
 	public Guid? CityId { get; set; }
 	public City? City { get; set; }

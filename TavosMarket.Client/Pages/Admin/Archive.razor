@@ -1,0 +1,156 @@
+﻿@page "/admin/archive"
+@using TavosMarket.Shared.Listings.DTOs
+@using TavosMarket.Shared
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
+        <MudText Typo="Typo.h4">Global Archive (Expired Listings)</MudText>
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@(() => NavigationManager.NavigateTo("/admin/dashboard"))">Back to Dashboard</MudButton>
+    </MudStack>
+
+    <MudGrid>
+        @if (_loading)
+        {
+            @for (int i = 0; i < 4; i++)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+                        <MudCardContent>
+                            <MudSkeleton Width="80%" />
+                            <MudSkeleton Width="40%" />
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+        else if (!_listings.Any())
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4">
+                    No expired listings found.
+                </MudAlert>
+            </MudItem>
+        }
+        else
+        {
+            @foreach (var listing in _listings)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="h-100">
+                        <div style="position: relative;" @onclick="@(() => NavigateToDetails(listing.Id))" class="cursor-pointer">
+                            <MudCardMedia Image="@GetListingImageUrl(listing)" Height="200" />
+                            <div style="position: absolute; bottom: 8px; left: 8px;">
+                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">@listing.Price.ToString("N0") €</MudChip>
+                            </div>
+                            <div style="position: absolute; top: 8px; right: 8px;">
+                                <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Filled">Expired</MudChip>
+                            </div>
+                        </div>
+                        <MudCardContent @onclick="@(() => NavigateToDetails(listing.Id))" class="cursor-pointer">
+                            <MudText Typo="Typo.subtitle1" Class="text-truncate"><b>@listing.Title</b></MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@listing.Category?.Name</MudText>
+                            @if (listing.ExpiresAt.HasValue)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Error" Class="d-block mt-1">
+                                    Expired on: @listing.ExpiresAt.Value.ToLocalTime().ToString("g")
+                                </MudText>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => NavigateToDetails(listing.Id))">Details</MudButton>
+                            <MudSpacer />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteListing(listing.Id))" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+</MudContainer>
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+
+@code {
+    private List<ListingDto> _listings = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadExpiredListings();
+    }
+
+    private string GetListingImageUrl(ListingDto listing)
+    {
+        var url = listing.Images.FirstOrDefault(i => i.IsMain)?.Url
+               ?? listing.Images.FirstOrDefault()?.Url;
+
+        if (string.IsNullOrEmpty(url)) return "/images/no-image.png";
+        if (url.StartsWith("http")) return url;
+
+        var client = HttpClientFactory.CreateClient("Api");
+        return $"{client.BaseAddress?.ToString().TrimEnd('/')}{url}";
+    }
+
+    private async Task LoadExpiredListings()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            // status=7 is Expired
+            var url = $"{ApiRoutes.Listings.Base}?status={(int)ListingStatusDto.Expired}";
+            _listings = await client.GetFromJsonAsync<List<ListingDto>>(url) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading archive: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void NavigateToDetails(Guid id)
+    {
+        NavigationManager.NavigateTo($"/listings/details/{id}?returnUrl={Uri.EscapeDataString("/admin/archive")}");
+    }
+
+    private async Task DeleteListing(Guid id)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("Api");
+            var response = await client.DeleteAsync(ApiRoutes.Listings.Delete.Replace("{id}", id.ToString()));
+            
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Listing deleted successfully", Severity.Success);
+                await LoadExpiredListings();
+            }
+            else
+            {
+                Snackbar.Add("Error deleting listing", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error deleting listing: " + ex.Message, Severity.Error);
+        }
+    }
+}

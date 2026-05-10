@@ -25,6 +25,7 @@ public class ListingEndpoint : IEndpoint
         [FromQuery] Guid? categoryId,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
+        [FromQuery] ListingStatusDto? status,
         [FromQuery(Name = "f")] string[]? f,
         ListingService listingService, 
         CancellationToken ct)
@@ -47,6 +48,7 @@ public class ListingEndpoint : IEndpoint
             CategoryId = categoryId,
             MinPrice = minPrice,
             MaxPrice = maxPrice,
+            Status = status,
             FieldFilters = fieldFilters
         };
         return TypedResults.Ok(await listingService.GetListingsAsync(filter, ct));

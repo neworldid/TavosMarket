@@ -66,6 +66,15 @@
                                     Manage Categories
                                 </MudButton>
                             </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="Color.Secondary" 
+                                           FullWidth="true" 
+                                           StartIcon="@Icons.Material.Filled.Archive"
+                                           OnClick="@(() => NavigationManager.NavigateTo("/admin/archive"))">
+                                    Archive
+                                </MudButton>
+                            </MudItem>
                         </MudGrid>
                     </MudCardContent>
                 </MudCard>

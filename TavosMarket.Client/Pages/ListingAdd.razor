@@ -123,8 +123,11 @@
                             </MudFileUpload>
                         </MudItem>
 
-                        <MudItem xs="12" Class="d-flex justify-end mt-6">
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success || _loading)" Loading="@_loading">
+                        <MudItem xs="12" Class="d-flex justify-end mt-6 gap-4">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@(() => Submit(false))" Disabled="@(!_success || _loading)" Loading="@(_loading && _listing.Status == ListingStatusDto.Draft)">
+                                Save as Draft
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => Submit(true))" Disabled="@(!_success || _loading)" Loading="@(_loading && _listing.Status == ListingStatusDto.Published)">
                                 @(IsEdit ? "Update" : "Publish")
                             </MudButton>
                         </MudItem>
@@ -332,11 +335,12 @@
         img.IsMain = true;
     }
 
-    private async Task Submit()
+    private async Task Submit(bool publish = true)
     {
         await _form.ValidateAsync();
         if (!_form.IsValid) return;
 
+        _listing.Status = publish ? ListingStatusDto.Published : ListingStatusDto.Draft;
         _loading = true;
         try
         {
@@ -355,8 +359,9 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add(IsEdit ? "Listing updated successfully!" : "Listing published successfully!", Severity.Success);
-                NavigationManager.NavigateTo("/listings");
+                var message = publish ? (IsEdit ? "Listing updated successfully!" : "Listing published successfully!") : "Draft saved successfully!";
+                Snackbar.Add(message, Severity.Success);
+                NavigationManager.NavigateTo("/my-listings");
             }
             else
             {

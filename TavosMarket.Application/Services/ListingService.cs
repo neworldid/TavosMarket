@@ -19,11 +19,33 @@ public class ListingService(
 {
     public async Task<List<ListingDto>> GetListingsAsync(ListingFilterDto filter, CancellationToken cancellationToken = default)
     {
+        var now = DateTime.UtcNow;
         var query = dbContext.Listings
             .Include(l => l.Category)
             .Include(l => l.City)
             .Include(l => l.Images)
             .AsQueryable();
+
+        if (filter.Status.HasValue)
+        {
+            if (filter.Status == ListingStatusDto.Expired)
+            {
+                query = query.Where(l => l.Status == ListingStatus.Published && l.ExpiresAt < now);
+            }
+            else if (filter.Status == ListingStatusDto.Published)
+            {
+                query = query.Where(l => l.Status == ListingStatus.Published && (l.ExpiresAt == null || l.ExpiresAt > now));
+            }
+            else
+            {
+                var status = (ListingStatus)filter.Status.Value;
+                query = query.Where(l => l.Status == status);
+            }
+        }
+        else
+        {
+            query = query.Where(l => l.Status == ListingStatus.Published && (l.ExpiresAt == null || l.ExpiresAt > now));
+        }
 
         if (filter.CategoryId.HasValue)
         {
@@ -145,8 +167,13 @@ public class ListingService(
             Price = dto.Price,
             IsNegotiable = dto.IsNegotiable,
             CityId = dto.CityId,
-            Status = ListingStatus.Published // Defaulting to published for now
+            Status = (ListingStatus)dto.Status
         };
+
+        if (listing.Status == ListingStatus.Published)
+        {
+            listing.ExpiresAt = DateTime.UtcNow.AddDays(30);
+        }
 
         foreach (var imgDto in dto.Images)
         {
@@ -240,6 +267,13 @@ public class ListingService(
         listing.IsNegotiable = dto.IsNegotiable;
         listing.CityId = dto.CityId;
 
+        var oldStatus = listing.Status;
+        listing.Status = (ListingStatus)dto.Status;
+        if (listing.Status == ListingStatus.Published && (oldStatus != ListingStatus.Published || listing.ExpiresAt == null))
+        {
+            listing.ExpiresAt = DateTime.UtcNow.AddDays(30);
+        }
+
         // Update Images
         dbContext.ListingImages.RemoveRange(listing.Images);
 
@@ -331,6 +365,12 @@ public class ListingService(
 
     private ListingDto MapToDto(Listing listing, Dictionary<Guid, string>? categoryFullNames = null)
     {
+        var status = (ListingStatusDto)listing.Status;
+        if (listing.Status == ListingStatus.Published && listing.ExpiresAt.HasValue && listing.ExpiresAt.Value < DateTime.UtcNow)
+        {
+            status = ListingStatusDto.Expired;
+        }
+
         var categoryDto = new CategoryDto { Id = listing.Category.Id, Name = listing.Category.Name };
         if (categoryFullNames != null && categoryFullNames.TryGetValue(listing.CategoryId, out var fullName))
         {
@@ -348,7 +388,8 @@ public class ListingService(
             IsNegotiable = listing.IsNegotiable,
             CityId = listing.CityId,
             City = listing.City != null ? new CityDto { Id = listing.City.Id, Name = listing.City.Name } : null,
-            Status = (ListingStatusDto)listing.Status,
+            Status = status,
+            ExpiresAt = listing.ExpiresAt,
             CreatedAtUtc = listing.CreatedAtUtc,
             Category = categoryDto,
             Images = listing.Images.Select(i => new ListingImageDto

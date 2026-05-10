@@ -9,7 +9,8 @@ public enum ListingStatusDto
     Published = 2,
     Rejected = 4,
     Archived = 5,
-    Sold = 6
+    Sold = 6,
+    Expired = 7
 }
 
 public class ListingDto
@@ -25,6 +26,7 @@ public class ListingDto
     public Guid? CityId { get; set; }
     public CityDto? City { get; set; }
     public ListingStatusDto Status { get; set; }
+    public DateTime? ExpiresAt { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     
     public List<ListingImageDto> Images { get; set; } = new();
