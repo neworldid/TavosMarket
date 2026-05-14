@@ -1,5 +1,8 @@
-﻿namespace TavosMarket.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
 
+namespace TavosMarket.Domain.Entities;
+
+[Index(nameof(FieldDefinitionId), nameof(SortOrder))]
 public class CategoryFieldOption : AuditableEntityBase
 {
 	public Guid FieldDefinitionId { get; set; }

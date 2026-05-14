@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TavosMarket.Infrastructure.Database;
 
@@ -11,9 +12,11 @@ using TavosMarket.Infrastructure.Database;
 namespace TavosMarket.Infrastructure.Migrations
 {
     [DbContext(typeof(TavosMarketDbContext))]
-    partial class TavosMarketDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514105835_AddedMigrations")]
+    partial class AddedMigrations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

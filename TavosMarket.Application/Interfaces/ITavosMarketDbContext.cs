@@ -12,7 +12,6 @@ public interface ITavosMarketDbContext
 	public DbSet<CategoryFieldOption> CategoryFieldOptions { get; }
 	public DbSet<ListingFieldValue> ListingFieldValues { get; }
 	public DbSet<ListingImage> ListingImages { get; }
-	public DbSet<ListingFavorite> ListingFavorites { get; }
 	
 
 	Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

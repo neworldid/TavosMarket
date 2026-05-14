@@ -12,6 +12,10 @@ public enum ListingStatus
 	Expired = 7
 }
 
+[Index(nameof(Status))]
+[Index(nameof(Price))]
+[Index(nameof(CreatedAtUtc))]
+[Index(nameof(Status), nameof(CategoryId), nameof(CreatedAtUtc))]
 public class Listing : AuditableEntityBase
 {
 	public Guid SellerId { get; set; }
@@ -34,5 +38,4 @@ public class Listing : AuditableEntityBase
 
 	public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
 	public ICollection<ListingFieldValue> FieldValues { get; set; } = new List<ListingFieldValue>();
-	public ICollection<ListingFavorite> Favorites { get; set; } = new List<ListingFavorite>();
 }

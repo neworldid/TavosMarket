@@ -17,7 +17,6 @@ public class TavosMarketDbContext(DbContextOptions<TavosMarketDbContext> options
 	public DbSet<CategoryFieldOption> CategoryFieldOptions { get; set; }
 	public DbSet<ListingFieldValue> ListingFieldValues { get; set; }
 	public DbSet<ListingImage> ListingImages { get; set; }
-	public DbSet<ListingFavorite> ListingFavorites { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{

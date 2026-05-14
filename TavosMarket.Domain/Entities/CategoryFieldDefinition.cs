@@ -3,6 +3,7 @@ using TavosMarket.Domain.Enums;
 
 namespace TavosMarket.Domain.Entities;
 
+[Index(nameof(CategoryId), nameof(SortOrder))]
 public class CategoryFieldDefinition : AuditableEntityBase
 {
 	public Guid CategoryId { get; set; }

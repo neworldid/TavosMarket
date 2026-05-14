@@ -1,5 +1,8 @@
-﻿namespace TavosMarket.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+namespace TavosMarket.Domain.Entities;
 
+[Index(nameof(SortOrder))]
+[Index(nameof(IsActive))]
 public class Category : AuditableEntityBase
 {
 	public string Name { get; set; } = string.Empty;
