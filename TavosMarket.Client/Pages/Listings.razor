@@ -10,9 +10,11 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-6">
         <MudText Typo="Typo.h4">Listings</MudText>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="NavigateToAddListing">
-            Post a Listing
-        </MudButton>
+        <AuthorizeView>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="NavigateToAddListing">
+                Post a Listing
+            </MudButton>
+        </AuthorizeView>
     </MudStack>
 
     <MudGrid>
