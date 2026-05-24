@@ -46,3 +46,16 @@ Tavos/
 ├── Domain/
 ├── Infrastructure/
 └── Shared/
+```
+Running the Project
+Requirements
+.NET 10 SDK
+SQL Server
+Setup
+git clone <repository-url>
+
+Apply database migrations:
+
+dotnet ef database update
+
+Run the backend and frontend projects.
